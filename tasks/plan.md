@@ -181,15 +181,15 @@ Do not start Stripe, PDF generation, dashboard analytics, or frontend polish bef
 
 ## Risks and Mitigations
 
-| Risk | Impact | Mitigation |
-|---|---|---|
-| Building all services too early | High | Start with Core API and add service integration only after tenant/auth is stable |
-| Tenant data leakage | High | Require tenant-scoped queries and write explicit isolation tests |
-| Duplicate invoice numbers under concurrency | High | Use database transactions, constraints, and load/concurrency tests |
-| Duplicate payments from webhook retries | High | Persist idempotency keys/provider event IDs and test replay behavior |
-| Financial rounding errors | High | Store money as integer minor units, not floating-point numbers |
-| Outbox relay complexity | Medium | Implement manual payment first, then outbox, then Stripe webhooks |
-| Worker failures hidden from API | Medium | Add retry, dead-letter queues, and structured logs |
+| Risk                                        | Impact | Mitigation                                                                       |
+| ------------------------------------------- | ------ | -------------------------------------------------------------------------------- |
+| Building all services too early             | High   | Start with Core API and add service integration only after tenant/auth is stable |
+| Tenant data leakage                         | High   | Require tenant-scoped queries and write explicit isolation tests                 |
+| Duplicate invoice numbers under concurrency | High   | Use database transactions, constraints, and load/concurrency tests               |
+| Duplicate payments from webhook retries     | High   | Persist idempotency keys/provider event IDs and test replay behavior             |
+| Financial rounding errors                   | High   | Store money as integer minor units, not floating-point numbers                   |
+| Outbox relay complexity                     | Medium | Implement manual payment first, then outbox, then Stripe webhooks                |
+| Worker failures hidden from API             | Medium | Add retry, dead-letter queues, and structured logs                               |
 
 ## Open Questions
 

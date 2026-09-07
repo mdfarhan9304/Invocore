@@ -1,0 +1,20 @@
+{
+  "name": "@invocore/config",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run --passWithNoTests"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./tsconfig/base": "./tsconfig/base.json",
+    "./tsconfig/node": "./tsconfig/node.json",
+    "./tsconfig/web": "./tsconfig/web.json"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.0"
+  }
+}

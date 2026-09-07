@@ -1,0 +1,27 @@
+{
+  "name": "@invocore/database",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit -p tsconfig.json",
+    "prisma:format": "prisma format --schema prisma/schema.prisma",
+    "prisma:validate": "prisma validate --schema prisma/schema.prisma",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@invocore/config": "workspace:*",
+    "@prisma/adapter-pg": "^7.10.0",
+    "@prisma/client": "^7.10.0",
+    "pg": "^8.23.0"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.23.1",
+    "prisma": "7.10.0",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.0"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}

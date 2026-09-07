@@ -1,4 +1,5 @@
 # Invocore
+
 ### Multi-Tenant Invoicing & Payment Management SaaS — Microservices Architecture
 
 **Architecture:** 3-service backend (Core API, Payments Service, Workers Service)
@@ -33,11 +34,11 @@ Business
 
 A common mistake in portfolio projects is splitting an app into many small services with no technical justification. Invocore uses **exactly three deployable services**, each justified by a real architectural boundary:
 
-| Service | Why it's separate |
-|---|---|
-| **Core API** | Owns transactional, tenant-scoped business data (orgs, clients, products, invoices). No reason to distribute this internally — it shares one consistency boundary. |
-| **Payments Service** | Public webhook surface, bursty traffic pattern, strict idempotency requirements, and a financial correctness boundary distinct from general business data. |
-| **Workers Service** | Async, non-blocking job processing (PDF, email, reminders, overdue detection) — a different runtime and scaling profile than request/response APIs. |
+| Service              | Why it's separate                                                                                                                                                  |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Core API**         | Owns transactional, tenant-scoped business data (orgs, clients, products, invoices). No reason to distribute this internally — it shares one consistency boundary. |
+| **Payments Service** | Public webhook surface, bursty traffic pattern, strict idempotency requirements, and a financial correctness boundary distinct from general business data.         |
+| **Workers Service**  | Async, non-blocking job processing (PDF, email, reminders, overdue detection) — a different runtime and scaling profile than request/response APIs.                |
 
 No additional services (e.g. separate Clients, Products, or Notifications services) are created, since they share the same consistency boundary as Core API and would only add network calls without solving a new class of problem.
 
@@ -82,12 +83,12 @@ JWT → Authenticated user → Tenant membership → req.tenantId
 
 ## 4. Roles & Permissions
 
-| Role | Typical Permissions |
-|---|---|
-| Owner | Full organization access, users, settings, invoices, payments, reports |
-| Admin | Clients, products, invoices, payments, reports |
-| Accountant | Invoices, payments, financial views, reminders |
-| Viewer | Read-only access to permitted organization data |
+| Role       | Typical Permissions                                                    |
+| ---------- | ---------------------------------------------------------------------- |
+| Owner      | Full organization access, users, settings, invoices, payments, reports |
+| Admin      | Clients, products, invoices, payments, reports                         |
+| Accountant | Invoices, payments, financial views, reminders                         |
+| Viewer     | Read-only access to permitted organization data                        |
 
 ---
 
@@ -155,9 +156,11 @@ Transitions are controlled by a service-layer state machine in Core API — neve
 ## 7. Invoice & Payment Requirements
 
 ### Invoice Fields
+
 Invoice number, client, issue date, due date, currency, line items, quantity, unit price, discount, tax, subtotal, total, amount paid, balance due, notes, terms.
 
 ### Concurrent-Safe Invoice Numbering
+
 Concurrent users must never receive the same invoice number. Enforced via a PostgreSQL transaction/locking strategy plus a unique constraint scoped to the tenant.
 
 ```
@@ -167,6 +170,7 @@ INV-2026-00003
 ```
 
 ### Partial Payments Example
+
 ```
 Invoice total: 100,000
 Payment 1:      30,000
@@ -177,9 +181,11 @@ Status: PARTIALLY_PAID
 ```
 
 ### Payment Idempotency
+
 Payment creation and payment-provider webhook processing must be idempotent. A unique provider event ID or idempotency key is persisted so repeated requests never create duplicate financial records.
 
 ### Outbox Pattern (Payments Service)
+
 1. Payment write and outbox-event write happen in a single DB transaction.
 2. A relay process polls/streams the outbox and publishes events (Redis Streams or BullMQ) to Core API and Workers.
 3. Downstream consumers apply changes idempotently (e.g. dashboard cache invalidation, receipt emails).
@@ -198,6 +204,7 @@ Payments Service ──events──▶ Redis / BullMQ ──▶ Workers Service
 ```
 
 ### Example: Send Invoice
+
 ```
 POST /invoices/:id/send
    → Validate + authorize
@@ -208,6 +215,7 @@ POST /invoices/:id/send
 ```
 
 ### Example: Overdue Detection
+
 ```
 Scheduler (Workers) → Find unpaid invoices past due_date
    → Transition to OVERDUE (via Core API event/API call)
@@ -231,36 +239,36 @@ Invoice PDFs are generated asynchronously and stored in S3-compatible object sto
 
 Shared PostgreSQL instance, **separate schema per service** (`core`, `payments`, `workers`) to avoid cross-schema joins and force communication via events/APIs.
 
-| Table | Schema | Important Fields |
-|---|---|---|
-| users | core | id, email, password_hash, name, created_at |
-| organizations | core | id, name, logo, currency, tax settings |
-| organization_members | core | organization_id, user_id, role |
-| clients | core | id, tenant_id, name, email, phone, address, tax_number |
-| products | core | id, tenant_id, name, sku, unit_price, tax_rate, unit |
-| invoices | core | id, tenant_id, client_id, invoice_number, status, version, dates, totals |
-| invoice_items | core | id, invoice_id, product_id, description, quantity, price, tax |
-| refresh_tokens | core | id, user_id, token_hash, expires_at, revoked_at |
-| audit_logs | core | id, tenant_id, user_id, action, resource, metadata, created_at |
-| payments | payments | id, tenant_id, invoice_id, amount, provider_event_id, paid_at |
-| payment_outbox | payments | id, event_type, payload, published_at |
-| notifications | workers | id, tenant_id, type, recipient, status, sent_at |
+| Table                | Schema   | Important Fields                                                         |
+| -------------------- | -------- | ------------------------------------------------------------------------ |
+| users                | core     | id, email, password_hash, name, created_at                               |
+| organizations        | core     | id, name, logo, currency, tax settings                                   |
+| organization_members | core     | organization_id, user_id, role                                           |
+| clients              | core     | id, tenant_id, name, email, phone, address, tax_number                   |
+| products             | core     | id, tenant_id, name, sku, unit_price, tax_rate, unit                     |
+| invoices             | core     | id, tenant_id, client_id, invoice_number, status, version, dates, totals |
+| invoice_items        | core     | id, invoice_id, product_id, description, quantity, price, tax            |
+| refresh_tokens       | core     | id, user_id, token_hash, expires_at, revoked_at                          |
+| audit_logs           | core     | id, tenant_id, user_id, action, resource, metadata, created_at           |
+| payments             | payments | id, tenant_id, invoice_id, amount, provider_event_id, paid_at            |
+| payment_outbox       | payments | id, event_type, payload, published_at                                    |
+| notifications        | workers  | id, tenant_id, type, recipient, status, sent_at                          |
 
 ---
 
 ## 11. API Surface
 
-| Area | Endpoints | Service |
-|---|---|---|
-| Auth | `POST /auth/register`, `/auth/login`, `/auth/refresh`, `/auth/logout` | Core API |
-| Clients | `GET/POST /clients`, `GET/PATCH/DELETE /clients/:id` | Core API |
-| Products | `GET/POST /products`, `PATCH/DELETE /products/:id` | Core API |
-| Invoices | `GET/POST /invoices`, `GET/PATCH /invoices/:id` | Core API |
-| Invoice Actions | `POST /invoices/:id/send`, `/cancel`, `GET /invoices/:id/pdf` | Core API / Workers |
-| Payments | `GET/POST /invoices/:id/payments` | Payments Service |
-| Webhooks | `POST /webhooks/stripe` | Payments Service |
-| Dashboard | `GET /dashboard`, `GET /reports/revenue` | Core API |
-| Audit | `GET /audit-logs` | Core API |
+| Area            | Endpoints                                                             | Service            |
+| --------------- | --------------------------------------------------------------------- | ------------------ |
+| Auth            | `POST /auth/register`, `/auth/login`, `/auth/refresh`, `/auth/logout` | Core API           |
+| Clients         | `GET/POST /clients`, `GET/PATCH/DELETE /clients/:id`                  | Core API           |
+| Products        | `GET/POST /products`, `PATCH/DELETE /products/:id`                    | Core API           |
+| Invoices        | `GET/POST /invoices`, `GET/PATCH /invoices/:id`                       | Core API           |
+| Invoice Actions | `POST /invoices/:id/send`, `/cancel`, `GET /invoices/:id/pdf`         | Core API / Workers |
+| Payments        | `GET/POST /invoices/:id/payments`                                     | Payments Service   |
+| Webhooks        | `POST /webhooks/stripe`                                               | Payments Service   |
+| Dashboard       | `GET /dashboard`, `GET /reports/revenue`                              | Core API           |
+| Audit           | `GET /audit-logs`                                                     | Core API           |
 
 ---
 
@@ -282,33 +290,33 @@ Shared PostgreSQL instance, **separate schema per service** (`core`, `payments`,
 
 ## 13. Technology Stack
 
-| Layer | Technology |
-|---|---|
-| Frontend | Next.js + TypeScript + Tailwind CSS |
-| Backend | Node.js + Express + TypeScript |
-| Database | PostgreSQL (shared instance, per-service schemas) |
-| ORM | Prisma |
-| Queue / Events | Redis + BullMQ (or Redis Streams for the outbox relay) |
-| PDF | Puppeteer |
-| Object Storage | S3-compatible storage |
-| Payments | Stripe (test mode) |
-| Observability | OpenTelemetry + structured logging |
-| Deployment | Docker (3 services + Postgres + Redis via docker-compose) |
-| Monorepo Tooling | pnpm workspaces / Turborepo or Nx |
+| Layer            | Technology                                                |
+| ---------------- | --------------------------------------------------------- |
+| Frontend         | Next.js + TypeScript + Tailwind CSS                       |
+| Backend          | Node.js + Express + TypeScript                            |
+| Database         | PostgreSQL (shared instance, per-service schemas)         |
+| ORM              | Prisma                                                    |
+| Queue / Events   | Redis + BullMQ (or Redis Streams for the outbox relay)    |
+| PDF              | Puppeteer                                                 |
+| Object Storage   | S3-compatible storage                                     |
+| Payments         | Stripe (test mode)                                        |
+| Observability    | OpenTelemetry + structured logging                        |
+| Deployment       | Docker (3 services + Postgres + Redis via docker-compose) |
+| Monorepo Tooling | pnpm workspaces / Turborepo or Nx                         |
 
 ---
 
 ## 14. Implementation Roadmap
 
-| Phase | Scope |
-|---|---|
-| 1 — Foundation | Monorepo, 3 service skeletons, shared Prisma schema/types packages, docker-compose, inter-service auth |
-| 2 — Auth, Tenants, RBAC | Registration/login/refresh, orgs, memberships, tenant middleware, role middleware, tenant-isolation tests |
-| 3 — Business Data | Clients and products CRUD, search/filter (kept simple) |
-| 4 — Invoice Engine | State machine, concurrency-safe numbering, optimistic locking |
-| 5 — Payments Service | Payment recording, Stripe webhooks, idempotency, outbox pattern |
-| 6 — Workers Service | Email/PDF/reminder/overdue workers, retries, dead-letter queues |
-| 7 — Observability & Hardening | Tracing, structured logging, rate limiting, audit logs, load testing |
+| Phase                         | Scope                                                                                                     |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------- |
+| 1 — Foundation                | Monorepo, 3 service skeletons, shared Prisma schema/types packages, docker-compose, inter-service auth    |
+| 2 — Auth, Tenants, RBAC       | Registration/login/refresh, orgs, memberships, tenant middleware, role middleware, tenant-isolation tests |
+| 3 — Business Data             | Clients and products CRUD, search/filter (kept simple)                                                    |
+| 4 — Invoice Engine            | State machine, concurrency-safe numbering, optimistic locking                                             |
+| 5 — Payments Service          | Payment recording, Stripe webhooks, idempotency, outbox pattern                                           |
+| 6 — Workers Service           | Email/PDF/reminder/overdue workers, retries, dead-letter queues                                           |
+| 7 — Observability & Hardening | Tracing, structured logging, rate limiting, audit logs, load testing                                      |
 
 ---
 
