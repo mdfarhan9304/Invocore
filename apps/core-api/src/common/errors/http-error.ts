@@ -2,6 +2,26 @@ import { Prisma } from "@invocore/database";
 import { AppError } from "@invocore/shared";
 import type { Response } from "express";
 
+function isEmailUniqueViolation(error: Prisma.PrismaClientKnownRequestError): boolean {
+  const target = error.meta?.target;
+  if (Array.isArray(target) && target.includes("email")) {
+    return true;
+  }
+
+  const meta = error.meta as {
+    driverAdapterError?: {
+      cause?: {
+        constraint?: {
+          index?: string;
+        };
+      };
+    };
+  };
+  const constraintIndex = meta.driverAdapterError?.cause?.constraint?.index;
+
+  return typeof constraintIndex === "string" && constraintIndex.includes("email");
+}
+
 export function sendHttpError(response: Response, error: unknown): void {
   if (error instanceof AppError) {
     response.status(error.statusCode).json({
@@ -16,8 +36,7 @@ export function sendHttpError(response: Response, error: unknown): void {
   if (
     error instanceof Prisma.PrismaClientKnownRequestError &&
     error.code === "P2002" &&
-    Array.isArray(error.meta?.target) &&
-    error.meta.target.includes("email")
+    isEmailUniqueViolation(error)
   ) {
     response.status(409).json({
       error: {

@@ -28,3 +28,16 @@ export type AuthResponseDto = {
   user: AuthUserDto;
   organization?: AuthOrganizationDto;
 };
+
+export type RefreshRequestDto = {
+  refreshToken: string;
+};
+
+export type LogoutRequestDto = {
+  refreshToken: string;
+};
+
+export type RefreshResponseDto = {
+  accessToken: string;
+  refreshToken: string;
+};

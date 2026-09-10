@@ -5,6 +5,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  schemas  = ["core"]
 }
 
 enum Role {
@@ -12,6 +13,8 @@ enum Role {
   ADMIN
   ACCOUNTANT
   VIEWER
+
+  @@schema("core")
 }
 
 model User {
@@ -25,6 +28,7 @@ model User {
   createdAt     DateTime       @default(now()) @map("created_at")
   updatedAt     DateTime       @updatedAt @map("updated_at")
 
+  @@schema("core")
   @@map("users")
 }
 
@@ -37,6 +41,7 @@ model Organization {
   createdAt   DateTime     @default(now()) @map("created_at")
   updatedAt   DateTime     @updatedAt @map("updated_at")
 
+  @@schema("core")
   @@map("organizations")
 }
 
@@ -52,6 +57,7 @@ model Membership {
 
   @@unique([organizationId, userId])
   @@index([userId])
+  @@schema("core")
   @@map("organization_members")
 }
 
@@ -66,6 +72,7 @@ model RefreshToken {
 
   @@index([userId])
   @@index([expiresAt])
+  @@schema("core")
   @@map("refresh_tokens")
 }
 
@@ -84,5 +91,6 @@ model AuditLog {
   @@index([organizationId])
   @@index([userId])
   @@index([resource, resourceId])
+  @@schema("core")
   @@map("audit_logs")
 }

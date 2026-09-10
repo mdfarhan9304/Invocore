@@ -2,8 +2,18 @@ import type { PrismaClient } from "@invocore/database";
 
 import type { CoreDbClient } from "../../common/database/core-db-client.js";
 
+export type RefreshTokenRecord = {
+  id: string;
+  userId: string;
+  expiresAt: Date;
+  revokedAt: Date | null;
+};
+
 export type AuthSessionRepository = {
   saveRefreshToken(input: { expiresAt: Date; tokenHash: string; userId: string }): Promise<void>;
+  findByTokenHash(tokenHash: string): Promise<RefreshTokenRecord | null>;
+  revokeToken(id: string): Promise<void>;
+  revokeAllForUser(userId: string): Promise<void>;
 };
 
 export type AuthRepository = AuthSessionRepository & {
@@ -19,6 +29,32 @@ export function createAuthSessionRepository(client: CoreDbClient): AuthSessionRe
           tokenHash: input.tokenHash,
           userId: input.userId
         }
+      });
+    },
+
+    async findByTokenHash(tokenHash) {
+      return client.refreshToken.findUnique({
+        select: {
+          id: true,
+          userId: true,
+          expiresAt: true,
+          revokedAt: true
+        },
+        where: { tokenHash }
+      });
+    },
+
+    async revokeToken(id) {
+      await client.refreshToken.updateMany({
+        data: { revokedAt: new Date() },
+        where: { id, revokedAt: null }
+      });
+    },
+
+    async revokeAllForUser(userId) {
+      await client.refreshToken.updateMany({
+        data: { revokedAt: new Date() },
+        where: { userId, revokedAt: null }
       });
     }
   };

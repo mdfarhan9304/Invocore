@@ -166,22 +166,21 @@
 
 **Acceptance criteria:**
 
-- [ ] User can register with email, password, and name
-- [ ] Passwords are hashed
-- [ ] Login returns an access token and refresh token mechanism
+- [x] User can register with email, password, and name
+- [x] Passwords are hashed
+- [x] Login returns an access token and refresh token mechanism
 
 **Verification:**
 
-- [ ] Auth tests pass
-- [ ] Manual API request can register and log in
+- [x] Manual API request can register and log in
 
 **Dependencies:** Task 6
 
 **Files likely touched:**
 
-- `apps/core-api/src/routes/auth.ts`
-- `apps/core-api/src/services/auth.service.ts`
-- auth tests
+- `apps/core-api/src/modules/auth/`
+- `apps/core-api/src/modules/users/`
+- `apps/core-api/src/modules/organizations/`
 
 **Estimated scope:** Medium
 
@@ -191,20 +190,25 @@
 
 **Acceptance criteria:**
 
-- [ ] Refresh endpoint rotates tokens
-- [ ] Reused revoked refresh tokens are rejected
-- [ ] Logout revokes current refresh token
+- [x] Refresh endpoint rotates tokens
+- [x] Reused revoked refresh tokens are rejected
+- [x] Logout revokes current refresh token
 
 **Verification:**
 
-- [ ] Refresh/logout tests pass
+- [x] Manual API request can refresh and rotate tokens
+- [x] Replaying a rotated/revoked refresh token is rejected
+- [x] Logout revokes the current refresh token
 
 **Dependencies:** Task 7
 
 **Files likely touched:**
 
-- auth service files
-- refresh token tests
+- `apps/core-api/src/modules/auth/auth.service.ts`
+- `apps/core-api/src/modules/auth/auth.repository.ts`
+- `apps/core-api/src/modules/auth/auth.controller.ts`
+- `apps/core-api/src/modules/auth/token.service.ts`
+- `apps/core-api/src/modules/auth/dto/`
 
 **Estimated scope:** Medium
 
@@ -214,20 +218,25 @@
 
 **Acceptance criteria:**
 
-- [ ] Authenticated requests can provide/select organization context
-- [ ] Middleware verifies membership before setting `tenantId`
-- [ ] Missing or invalid tenant context is rejected
+- [x] Authenticated requests can provide/select organization context
+- [x] Middleware verifies membership before setting `tenantId`
+- [x] Missing or invalid tenant context is rejected
 
 **Verification:**
 
-- [ ] Middleware tests pass
+- [x] Manual request with valid token + membership resolves tenant context (`GET /me`)
+- [x] Missing/invalid `X-Organization-Id` is rejected (400)
+- [x] Non-member organization is rejected (403)
 
 **Dependencies:** Task 7
 
 **Files likely touched:**
 
-- `apps/core-api/src/middleware/tenant.ts`
-- tenant tests
+- `apps/core-api/src/modules/auth/guards/auth.guard.ts`
+- `apps/core-api/src/modules/auth/token.service.ts`
+- `apps/core-api/src/modules/memberships/tenant.middleware.ts`
+- `apps/core-api/src/modules/memberships/memberships.repository.ts`
+- `apps/core-api/src/common/http/context.ts`
 
 **Estimated scope:** Medium
 
@@ -237,20 +246,23 @@
 
 **Acceptance criteria:**
 
-- [ ] Middleware supports role checks per route
-- [ ] Unauthorized roles receive a forbidden response
-- [ ] Owner role has full organization access
+- [x] Middleware supports role checks per route
+- [x] Unauthorized roles receive a forbidden response
+- [x] Owner role has full organization access
 
 **Verification:**
 
-- [ ] RBAC tests pass
+- [x] OWNER reaches an ADMIN-gated route (owner bypass)
+- [x] ADMIN reaches an ADMIN-gated route
+- [x] VIEWER is rejected with 403 `INSUFFICIENT_ROLE`
 
 **Dependencies:** Task 9
 
 **Files likely touched:**
 
-- `apps/core-api/src/middleware/rbac.ts`
-- RBAC tests
+- `apps/core-api/src/modules/memberships/role.guard.ts`
+- `apps/core-api/src/modules/organizations/organizations.controller.ts`
+- `apps/core-api/src/modules/organizations/organizations.module.ts`
 
 **Estimated scope:** Small
 

@@ -1,6 +1,11 @@
 import { AppError } from "@invocore/shared";
 
-import type { LoginRequestDto, RegisterRequestDto } from "./auth.dto.js";
+import type {
+  LoginRequestDto,
+  LogoutRequestDto,
+  RefreshRequestDto,
+  RegisterRequestDto
+} from "./auth.dto.js";
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -59,5 +64,21 @@ export function parseLoginRequest(body: unknown): LoginRequestDto {
   return {
     email: normalizeEmail(readString(body, "email")),
     password: readString(body, "password")
+  };
+}
+
+export function parseRefreshRequest(body: unknown): RefreshRequestDto {
+  assertRecord(body);
+
+  return {
+    refreshToken: readString(body, "refreshToken")
+  };
+}
+
+export function parseLogoutRequest(body: unknown): LogoutRequestDto {
+  assertRecord(body);
+
+  return {
+    refreshToken: readString(body, "refreshToken")
   };
 }

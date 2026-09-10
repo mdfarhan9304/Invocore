@@ -7,12 +7,26 @@ import {
 } from "../organizations/organizations.repository.js";
 import { createUsersRepository, type UsersRepository } from "../users/users.repository.js";
 import { createAuthSessionRepository, type AuthRepository } from "./auth.repository.js";
-import type { AuthResponseDto, LoginRequestDto, RegisterRequestDto } from "./dto/auth.dto.js";
+import type {
+  AuthResponseDto,
+  LoginRequestDto,
+  LogoutRequestDto,
+  RefreshRequestDto,
+  RefreshResponseDto,
+  RegisterRequestDto
+} from "./dto/auth.dto.js";
 import { hashPassword, verifyPassword } from "./password.js";
-import { createRefreshToken, createRefreshTokenExpiry, signAccessToken } from "./token.service.js";
+import {
+  createRefreshToken,
+  createRefreshTokenExpiry,
+  hashRefreshToken,
+  signAccessToken
+} from "./token.service.js";
 
 export type AuthService = {
   login(input: LoginRequestDto): Promise<AuthResponseDto>;
+  logout(input: LogoutRequestDto): Promise<void>;
+  refresh(input: RefreshRequestDto): Promise<RefreshResponseDto>;
   register(input: RegisterRequestDto): Promise<AuthResponseDto>;
 };
 
@@ -54,6 +68,53 @@ export function createAuthService({
           id: user.id,
           name: user.name
         }
+      };
+    },
+
+    async logout(input) {
+      const tokenHash = hashRefreshToken(input.refreshToken);
+      const existing = await authRepository.findByTokenHash(tokenHash);
+      if (existing && !existing.revokedAt) {
+        await authRepository.revokeToken(existing.id);
+      }
+    },
+
+    async refresh(input) {
+      const tokenHash = hashRefreshToken(input.refreshToken);
+      const existing = await authRepository.findByTokenHash(tokenHash);
+
+      if (!existing || existing.expiresAt.getTime() <= Date.now()) {
+        throw new AppError("Invalid refresh token", "INVALID_REFRESH_TOKEN", 401);
+      }
+
+      if (existing.revokedAt) {
+        // Replaying an already-rotated token signals theft: revoke every active session.
+        await authRepository.revokeAllForUser(existing.userId);
+        throw new AppError("Invalid refresh token", "INVALID_REFRESH_TOKEN", 401);
+      }
+
+      const user = await usersRepository.findById(existing.userId);
+      if (!user) {
+        throw new AppError("Invalid refresh token", "INVALID_REFRESH_TOKEN", 401);
+      }
+
+      const nextRefreshToken = createRefreshToken();
+      await authRepository.withTransaction(async (client) => {
+        const sessionRepository = createAuthSessionRepository(client);
+        await sessionRepository.revokeToken(existing.id);
+        await sessionRepository.saveRefreshToken({
+          expiresAt: createRefreshTokenExpiry(),
+          tokenHash: nextRefreshToken.tokenHash,
+          userId: existing.userId
+        });
+      });
+
+      return {
+        accessToken: signAccessToken({
+          email: user.email,
+          userId: user.id
+        }),
+        refreshToken: nextRefreshToken.token
       };
     },
 

@@ -8,6 +8,7 @@ export type UserWithPasswordRecord = Pick<User, "email" | "id" | "name" | "passw
 export type UsersRepository = {
   create(input: { email: string; name: string; passwordHash: string }): Promise<PublicUserRecord>;
   findByEmail(email: string): Promise<UserWithPasswordRecord | null>;
+  findById(id: string): Promise<PublicUserRecord | null>;
 };
 
 export function createUsersRepository(client: CoreDbClient): UsersRepository {
@@ -37,6 +38,19 @@ export function createUsersRepository(client: CoreDbClient): UsersRepository {
         },
         where: {
           email
+        }
+      });
+    },
+
+    findById(id) {
+      return client.user.findUnique({
+        select: {
+          email: true,
+          id: true,
+          name: true
+        },
+        where: {
+          id
         }
       });
     }

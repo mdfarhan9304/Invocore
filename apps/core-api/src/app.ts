@@ -4,6 +4,8 @@ import type { HealthResponse } from "@invocore/shared";
 
 import { sendHttpError } from "./common/errors/http-error.js";
 import { createAuthModule } from "./modules/auth/auth.module.js";
+import { createOrganizationsModule } from "./modules/organizations/organizations.module.js";
+import { createSessionModule } from "./modules/session/session.module.js";
 
 export function createApp() {
   const app = express();
@@ -20,6 +22,8 @@ export function createApp() {
   });
 
   app.use("/auth", createAuthModule());
+  app.use("/me", createSessionModule());
+  app.use("/organizations", createOrganizationsModule());
 
   app.use(
     (
