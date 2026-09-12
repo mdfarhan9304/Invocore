@@ -1,10 +1,9 @@
-import type { Role } from "@invocore/database";
 import type { Request, Response, Router } from "express";
 import { Router as createRouter } from "express";
 
 import { asyncController } from "../../common/http/async-controller.js";
 import { getTenantContext } from "../../common/http/context.js";
-import { createRoleGuard } from "../memberships/role.guard.js";
+import { createPermissionGuard } from "../memberships/role.guard.js";
 import type { ClientsService } from "./clients.service.js";
 import {
   parseClientId,
@@ -13,15 +12,12 @@ import {
   parseUpdateClientRequest
 } from "./dto/clients.validation.js";
 
-const READ_ROLES: Role[] = ["ADMIN", "ACCOUNTANT", "VIEWER"];
-const WRITE_ROLES: Role[] = ["ADMIN", "ACCOUNTANT"];
-
 export function createClientsController(clientsService: ClientsService): Router {
   const router = createRouter();
 
   router.post(
     "/",
-    createRoleGuard(...WRITE_ROLES),
+    createPermissionGuard("clients:write"),
     asyncController(async (request: Request, response: Response) => {
       const tenant = getTenantContext(request);
       const client = await clientsService.createClient({
@@ -35,7 +31,7 @@ export function createClientsController(clientsService: ClientsService): Router 
 
   router.get(
     "/",
-    createRoleGuard(...READ_ROLES),
+    createPermissionGuard("clients:read"),
     asyncController(async (request: Request, response: Response) => {
       const tenant = getTenantContext(request);
       const result = await clientsService.listClients({
@@ -49,7 +45,7 @@ export function createClientsController(clientsService: ClientsService): Router 
 
   router.get(
     "/:clientId",
-    createRoleGuard(...READ_ROLES),
+    createPermissionGuard("clients:read"),
     asyncController(async (request: Request, response: Response) => {
       const tenant = getTenantContext(request);
       const client = await clientsService.getClient({
@@ -63,7 +59,7 @@ export function createClientsController(clientsService: ClientsService): Router 
 
   router.patch(
     "/:clientId",
-    createRoleGuard(...WRITE_ROLES),
+    createPermissionGuard("clients:write"),
     asyncController(async (request: Request, response: Response) => {
       const tenant = getTenantContext(request);
       const client = await clientsService.updateClient({
@@ -78,7 +74,7 @@ export function createClientsController(clientsService: ClientsService): Router 
 
   router.delete(
     "/:clientId",
-    createRoleGuard(...WRITE_ROLES),
+    createPermissionGuard("clients:delete"),
     asyncController(async (request: Request, response: Response) => {
       const tenant = getTenantContext(request);
       await clientsService.deleteClient({

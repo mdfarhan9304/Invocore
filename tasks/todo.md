@@ -296,6 +296,127 @@
 - [ ] Tenant middleware resolves `tenantId`
 - [ ] Cross-tenant access is rejected by tests
 
+## Task 12b: Replace scattered role guards with a central permission matrix
+
+**Description:** Define all resource permissions in a single `permissions.ts` file and replace `createRoleGuard` with `createPermissionGuard` across all controllers. No behaviour change — policy moves from scattered constants to one authoritative location.
+
+**Acceptance criteria:**
+
+- [ ] `permissions.ts` lists every permission as a key mapping to the roles that hold it
+- [ ] `OWNER` is an explicit entry in each permission's role list — no special-case bypass in the guard
+- [ ] `createPermissionGuard("clients:write")` replaces `createRoleGuard("ADMIN", "ACCOUNTANT")` in clients controller
+- [ ] `createPermissionGuard("members:read")` replaces `createRoleGuard("ADMIN")` in organizations controller
+- [ ] Existing behaviour is preserved: same roles pass/fail the same routes
+
+**Verification:**
+
+- [ ] `pnpm --filter @invocore/core-api build` passes
+- [ ] `pnpm lint` passes
+
+**Dependencies:** Task 10
+
+**Files likely touched:**
+
+- `apps/core-api/src/modules/memberships/permissions.ts` (new)
+- `apps/core-api/src/modules/memberships/role.guard.ts` → renamed/replaced
+- `apps/core-api/src/modules/clients/clients.controller.ts`
+- `apps/core-api/src/modules/organizations/organizations.controller.ts`
+
+**Estimated scope:** Small
+
+## Task 13: Add OrganizationInvite schema and migration
+
+**Description:** Add an `OrganizationInvite` table to the Prisma schema. Stores a hashed token, target email, role, expiry, and who created it. Enforces one active invite per email per organization.
+
+**Acceptance criteria:**
+
+- [ ] `OrganizationInvite` model exists with: `id`, `organizationId`, `invitedEmail`, `role`, `tokenHash` (unique), `expiresAt`, `acceptedAt` (nullable), `createdByUserId`
+- [ ] Unique constraint on `(organizationId, invitedEmail)` where `acceptedAt IS NULL` — enforced at app level since Prisma partial indexes need raw SQL migration
+- [ ] Migration applies cleanly against local Postgres
+
+**Verification:**
+
+- [ ] `pnpm --filter @invocore/database exec prisma migrate dev --name add_organization_invites`
+- [ ] `pnpm --filter @invocore/database exec prisma validate`
+
+**Dependencies:** Task 6
+
+**Files likely touched:**
+
+- `packages/database/prisma/schema.prisma`
+- new migration file
+
+**Estimated scope:** Small
+
+## Task 14: Implement invite creation endpoint (OWNER only)
+
+**Description:** `POST /organizations/current/invites` — owner creates an invite for an email + role. Returns the raw token once (never stored). Owner shares the link manually.
+
+**Acceptance criteria:**
+
+- [ ] Validates `email` (valid format) and `role` (ADMIN | ACCOUNTANT | VIEWER — not OWNER)
+- [ ] Rejects if the email already has an active (non-expired, non-accepted) invite for this org
+- [ ] Rejects if the email is already a member of this org
+- [ ] Stores `tokenHash`, returns `{ token, expiresAt }` — token is never retrievable again
+- [ ] Token expires in 7 days
+- [ ] Only OWNER can call this endpoint
+
+**Verification:**
+
+- [ ] `POST /organizations/current/invites` with valid body returns 201 + token
+- [ ] Duplicate active invite returns 409
+- [ ] Non-OWNER returns 403
+
+**Dependencies:** Tasks 12b, 13
+
+**Files likely touched:**
+
+- `apps/core-api/src/modules/organizations/invites.repository.ts` (new)
+- `apps/core-api/src/modules/organizations/invites.service.ts` (new)
+- `apps/core-api/src/modules/organizations/organizations.controller.ts`
+- `apps/core-api/src/modules/organizations/organizations.module.ts`
+- `apps/core-api/src/modules/organizations/dto/` (new invite DTOs)
+
+**Estimated scope:** Medium
+
+## Task 15: Implement invite lookup and accept endpoints
+
+**Description:** Two public-ish endpoints: `GET /invites/:token` lets the invitee preview the invite (org name, role) before acting. `POST /invites/:token/accept` requires authentication — adds the caller as a member and marks the invite accepted.
+
+**Acceptance criteria:**
+
+- [ ] `GET /invites/:token` — no auth required — returns `{ organizationName, role, invitedEmail, expiresAt }` or 404 if not found/expired/accepted
+- [ ] `POST /invites/:token/accept` — auth required — rejects if: token invalid/expired/already accepted, or caller's email does not match `invitedEmail`
+- [ ] On success: creates `Membership` record atomically with marking `acceptedAt`, returns `{ organization: { id, name, role } }`
+- [ ] Accepted invite cannot be reused (idempotent — if already a member, 409)
+
+**Verification:**
+
+- [ ] `GET /invites/:token` returns org name and role for a valid token
+- [ ] `POST /invites/:token/accept` with correct user creates membership and returns org
+- [ ] Wrong user email returns 403
+- [ ] Expired token returns 410
+
+**Dependencies:** Task 14
+
+**Files likely touched:**
+
+- `apps/core-api/src/modules/organizations/invites.repository.ts`
+- `apps/core-api/src/modules/organizations/invites.service.ts`
+- `apps/core-api/src/app.ts` (mount invites router at `/invites`)
+- new invites controller
+
+**Estimated scope:** Medium
+
+## Checkpoint: Permission Matrix + Invite Flow
+
+- [ ] `pnpm --filter @invocore/core-api build` passes
+- [ ] `pnpm lint` passes
+- [ ] Owner can create an invite token
+- [ ] Invitee can preview and accept the invite
+- [ ] Wrong user cannot accept another user's invite
+- [ ] Expired tokens are rejected
+
 ## Later Phases
 
 - [ ] Phase 3: Clients and products CRUD

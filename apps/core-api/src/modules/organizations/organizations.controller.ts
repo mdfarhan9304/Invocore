@@ -4,7 +4,7 @@ import { Router as createRouter } from "express";
 import { asyncController } from "../../common/http/async-controller.js";
 import { getAuthContext, getTenantContext } from "../../common/http/context.js";
 import type { MembershipsService } from "../memberships/memberships.service.js";
-import { createRoleGuard } from "../memberships/role.guard.js";
+import { createPermissionGuard } from "../memberships/role.guard.js";
 
 export function createUserOrganizationsController(membershipsService: MembershipsService): Router {
   const router = createRouter();
@@ -27,7 +27,7 @@ export function createOrganizationsController(membershipsService: MembershipsSer
 
   router.get(
     "/current/members",
-    createRoleGuard("ADMIN"),
+    createPermissionGuard("members:read"),
     asyncController(async (request: Request, response: Response) => {
       const tenant = getTenantContext(request);
       const members = await membershipsService.listOrganizationMembers(tenant.organizationId);
