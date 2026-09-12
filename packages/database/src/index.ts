@@ -5,6 +5,7 @@ import { PrismaClient } from "../generated/client/client.js";
 
 export type {
   AuditLog,
+  Client,
   Membership,
   Organization,
   PrismaClient,

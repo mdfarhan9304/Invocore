@@ -13,12 +13,19 @@ export type OrganizationMemberRecord = {
   userId: string;
 };
 
+export type UserOrganizationRecord = {
+  id: string;
+  name: string;
+  role: Role;
+};
+
 export type MembershipsRepository = {
   findByOrganizationAndUser(input: {
     organizationId: string;
     userId: string;
   }): Promise<MembershipRecord | null>;
   listByOrganization(organizationId: string): Promise<OrganizationMemberRecord[]>;
+  listByUser(userId: string): Promise<UserOrganizationRecord[]>;
 };
 
 export function createMembershipsRepository(client: CoreDbClient): MembershipsRepository {
@@ -62,6 +69,32 @@ export function createMembershipsRepository(client: CoreDbClient): MembershipsRe
         name: membership.user.name,
         role: membership.role,
         userId: membership.userId
+      }));
+    },
+
+    async listByUser(userId) {
+      const memberships = await client.membership.findMany({
+        orderBy: {
+          createdAt: "asc"
+        },
+        select: {
+          organizationId: true,
+          role: true,
+          organization: {
+            select: {
+              name: true
+            }
+          }
+        },
+        where: {
+          userId
+        }
+      });
+
+      return memberships.map((membership) => ({
+        id: membership.organizationId,
+        name: membership.organization.name,
+        role: membership.role
       }));
     }
   };

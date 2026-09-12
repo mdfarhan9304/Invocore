@@ -12,6 +12,7 @@ export type AppConfig = {
     jwtSecret: string;
     refreshTokenTtlDays: number;
   };
+  corsOrigins: string[];
   databaseUrl: string;
   nodeEnv: NodeEnv;
   redisUrl: string;
@@ -43,6 +44,15 @@ function readNodeEnv(env: Environment): NodeEnv {
   throw new Error("NODE_ENV must be development, test, or production");
 }
 
+function readCorsOrigins(env: Environment): string[] {
+  const raw = env.CORS_ORIGINS ?? "http://localhost:3000";
+
+  return raw
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter((origin) => origin.length > 0);
+}
+
 export function loadConfig(env: Environment = process.env): AppConfig {
   const nodeEnv = readNodeEnv(env);
   const jwtSecret = env.JWT_SECRET ?? "dev-only-invocore-jwt-secret-change-me";
@@ -65,6 +75,7 @@ export function loadConfig(env: Environment = process.env): AppConfig {
       jwtSecret,
       refreshTokenTtlDays: readInteger(env, "REFRESH_TOKEN_TTL_DAYS", 30)
     },
+    corsOrigins: readCorsOrigins(env),
     databaseUrl:
       env.DATABASE_URL ??
       `postgresql://${postgresUser}:${postgresPassword}@${postgresHost}:${postgresPort}/${postgresDb}?schema=core`,

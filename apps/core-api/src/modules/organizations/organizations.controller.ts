@@ -2,9 +2,25 @@ import type { Request, Response, Router } from "express";
 import { Router as createRouter } from "express";
 
 import { asyncController } from "../../common/http/async-controller.js";
-import { getTenantContext } from "../../common/http/context.js";
+import { getAuthContext, getTenantContext } from "../../common/http/context.js";
 import type { MembershipsService } from "../memberships/memberships.service.js";
 import { createRoleGuard } from "../memberships/role.guard.js";
+
+export function createUserOrganizationsController(membershipsService: MembershipsService): Router {
+  const router = createRouter();
+
+  router.get(
+    "/",
+    asyncController(async (request: Request, response: Response) => {
+      const auth = getAuthContext(request);
+      const organizations = await membershipsService.listUserOrganizations(auth.userId);
+
+      response.status(200).json({ organizations });
+    })
+  );
+
+  return router;
+}
 
 export function createOrganizationsController(membershipsService: MembershipsService): Router {
   const router = createRouter();

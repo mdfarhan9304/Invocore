@@ -69,7 +69,7 @@ tsconfig.base.json
 
 ### Phase 3: Business Data
 
-- [ ] Task 12: Implement clients CRUD with tenant scoping
+- [x] Task 12: Implement clients CRUD with tenant scoping
 - [ ] Task 13: Implement products/services CRUD with tenant scoping
 - [ ] Task 14: Add search and basic filtering for clients and products
 - [ ] Task 15: Add audit logs for client and product changes

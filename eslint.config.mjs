@@ -8,11 +8,12 @@ export default [
     ignores: [
       ".agents/**",
       ".git/**",
-      ".next/**",
-      "build/**",
-      "coverage/**",
-      "dist/**",
-      "node_modules/**"
+      "**/.next/**",
+      "**/next-env.d.ts",
+      "**/build/**",
+      "**/coverage/**",
+      "**/dist/**",
+      "**/node_modules/**"
     ]
   },
   js.configs.recommended,

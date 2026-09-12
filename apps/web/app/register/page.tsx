@@ -1,0 +1,116 @@
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState, type FormEvent } from "react";
+
+import { AuthCard } from "@/components/auth/auth-card";
+import { Button } from "@/components/ui/button";
+import { Field, FormAlert } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { ApiError } from "@/lib/api/client";
+import { useAuth } from "@/lib/auth/auth-context";
+
+export default function RegisterPage() {
+  const router = useRouter();
+  const { register, isAuthenticated, isInitializing } = useAuth();
+  const [name, setName] = useState("");
+  const [organizationName, setOrganizationName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!isInitializing && isAuthenticated) {
+      router.replace("/clients");
+    }
+  }, [isInitializing, isAuthenticated, router]);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    setSubmitting(true);
+
+    try {
+      await register({
+        name,
+        email,
+        password,
+        organizationName: organizationName.trim() ? organizationName.trim() : undefined
+      });
+      router.replace("/clients");
+    } catch (submitError) {
+      setError(
+        submitError instanceof ApiError
+          ? submitError.message
+          : "Unable to create your account. Please try again."
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <AuthCard
+      title="Create your account"
+      subtitle="Set up your organization to start managing clients and invoices."
+      footer={
+        <span>
+          Already have an account?{" "}
+          <Link href="/login" className="font-medium text-blue-600 hover:text-blue-700">
+            Sign in
+          </Link>
+        </span>
+      }
+    >
+      <form className="space-y-4" onSubmit={handleSubmit} noValidate>
+        {error ? <FormAlert>{error}</FormAlert> : null}
+        <Field label="Your name" htmlFor="name" required>
+          <Input
+            id="name"
+            autoComplete="name"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            required
+          />
+        </Field>
+        <Field
+          label="Organization name"
+          htmlFor="organizationName"
+          hint="Optional — defaults to your name."
+        >
+          <Input
+            id="organizationName"
+            value={organizationName}
+            onChange={(event) => setOrganizationName(event.target.value)}
+          />
+        </Field>
+        <Field label="Email" htmlFor="email" required>
+          <Input
+            id="email"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            required
+          />
+        </Field>
+        <Field label="Password" htmlFor="password" required hint="At least 8 characters.">
+          <Input
+            id="password"
+            type="password"
+            autoComplete="new-password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            minLength={8}
+            required
+          />
+        </Field>
+        <Button type="submit" className="w-full" disabled={submitting}>
+          {submitting ? "Creating account…" : "Create account"}
+        </Button>
+      </form>
+    </AuthCard>
+  );
+}
