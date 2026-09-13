@@ -11,6 +11,10 @@ export type Permission =
   | "clients:read"
   | "clients:write"
   | "clients:delete"
+  // Products
+  | "products:read"
+  | "products:write"
+  | "products:delete"
   // Members
   | "members:read"
   | "members:invite"
@@ -55,6 +59,9 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[] | [Wildcard]> = {
     "clients:read",
     "clients:write",
     "clients:delete",
+    "products:read",
+    "products:write",
+    "products:delete",
     "members:read",
     "members:invite",
     "members:remove",
@@ -65,22 +72,20 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[] | [Wildcard]> = {
     "invoices:approve",
     "invoices:send",
     "reports:read",
-    "org:settings",
+    "org:settings"
   ],
 
   ACCOUNTANT: [
     "clients:read",
     "clients:write",
+    "products:read",
+    "products:write",
     "invoices:read",
     "invoices:write",
-    "reports:read",
+    "reports:read"
   ],
 
-  VIEWER: [
-    "clients:read",
-    "invoices:read",
-    "reports:read",
-  ],
+  VIEWER: ["clients:read", "products:read", "invoices:read", "reports:read"]
 };
 
 /**

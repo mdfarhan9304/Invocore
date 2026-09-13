@@ -7,7 +7,9 @@ import { sendHttpError } from "./common/errors/http-error.js";
 import { createCorsMiddleware } from "./common/http/cors.js";
 import { createAuthModule } from "./modules/auth/auth.module.js";
 import { createClientsModule } from "./modules/clients/clients.module.js";
+import { createInvoicesModule } from "./modules/invoices/invoices.module.js";
 import { createOrganizationsModule } from "./modules/organizations/organizations.module.js";
+import { createProductsModule } from "./modules/products/products.module.js";
 import { createSessionModule } from "./modules/session/session.module.js";
 
 export function createApp() {
@@ -29,6 +31,8 @@ export function createApp() {
   app.use("/me", createSessionModule());
   app.use("/organizations", createOrganizationsModule());
   app.use("/clients", createClientsModule());
+  app.use("/products", createProductsModule());
+  app.use("/invoices", createInvoicesModule());
 
   app.use(
     (

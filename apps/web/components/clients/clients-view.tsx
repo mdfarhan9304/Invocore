@@ -11,7 +11,7 @@ import {
   DialogContent,
   DialogDescription,
   DialogHeader,
-  DialogTitle,
+  DialogTitle
 } from "@/components/ui/dialog";
 import { EmptyState, TableSkeleton } from "@/components/ui/feedback";
 import { FormAlert } from "@/components/ui/field";
@@ -233,7 +233,10 @@ export function ClientsView() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={Boolean(deletingClient)} onOpenChange={(open) => !open && setDeletingClient(null)}>
+      <Dialog
+        open={Boolean(deletingClient)}
+        onOpenChange={(open) => !open && setDeletingClient(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete client</DialogTitle>

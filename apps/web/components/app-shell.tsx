@@ -1,11 +1,20 @@
 "use client";
 
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/auth-context";
 
+const NAV_LINKS = [
+  { href: "/clients", label: "Clients" },
+  { href: "/products", label: "Products" },
+  { href: "/invoices", label: "Invoices" }
+] as const;
+
 export function AppShell({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
   const { user, organizations, activeOrganization, selectOrganization, logout } = useAuth();
 
   return (
@@ -47,6 +56,23 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
       </header>
+      <nav className="border-b border-slate-100 bg-white">
+        <div className="mx-auto flex max-w-5xl gap-1 px-4">
+          {NAV_LINKS.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`border-b-2 px-3 py-2 text-sm font-medium transition-colors ${
+                pathname.startsWith(link.href)
+                  ? "border-slate-900 text-slate-900"
+                  : "border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700"
+              }`}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </div>
+      </nav>
       <main className="mx-auto max-w-5xl px-4 py-8">{children}</main>
     </div>
   );

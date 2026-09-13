@@ -6,13 +6,17 @@ import { PrismaClient } from "../generated/client/client.js";
 export type {
   AuditLog,
   Client,
+  Invoice,
+  InvoiceLineItem,
+  InvoiceNumberSequence,
   Membership,
   Organization,
   PrismaClient,
+  Product,
   RefreshToken,
   User
 } from "../generated/client/client.js";
-export { Prisma, Role } from "../generated/client/client.js";
+export { InvoiceStatus, Prisma, Role } from "../generated/client/client.js";
 
 export const PRISMA_SCHEMAS = {
   core: "core",

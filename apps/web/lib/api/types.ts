@@ -91,3 +91,138 @@ export type UpdateClientInput = {
   country?: string | null;
   notes?: string | null;
 };
+
+export type Product = {
+  id: string;
+  name: string;
+  description: string | null;
+  unitPrice: number;
+  currency: string;
+  taxRate: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ProductList = {
+  data: Product[];
+  pagination: {
+    limit: number;
+    offset: number;
+    total: number;
+  };
+};
+
+export type CreateProductInput = {
+  name: string;
+  description?: string;
+  unitPrice: number;
+  currency?: string;
+  taxRate?: number;
+};
+
+export type UpdateProductInput = {
+  name?: string;
+  description?: string | null;
+  unitPrice?: number;
+  currency?: string;
+  taxRate?: number;
+  isActive?: boolean;
+};
+
+export type InvoiceStatus =
+  "DRAFT" | "ISSUED" | "SENT" | "PARTIALLY_PAID" | "PAID" | "OVERDUE" | "CANCELLED";
+
+export type InvoiceLineItem = {
+  id: string;
+  productId: string | null;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  taxRate: number;
+  lineTotal: number;
+  lineTax: number;
+  sortOrder: number;
+};
+
+export type Invoice = {
+  id: string;
+  clientId: string;
+  clientName: string;
+  invoiceNumber: string | null;
+  status: InvoiceStatus;
+  issueDate: string | null;
+  dueDate: string | null;
+  currency: string;
+  subtotal: number;
+  taxTotal: number;
+  total: number;
+  amountPaid: number;
+  balanceDue: number;
+  notes: string | null;
+  terms: string | null;
+  version: number;
+  lineItems: InvoiceLineItem[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type InvoiceSummary = {
+  id: string;
+  clientId: string;
+  clientName: string;
+  invoiceNumber: string | null;
+  status: InvoiceStatus;
+  issueDate: string | null;
+  dueDate: string | null;
+  currency: string;
+  total: number;
+  amountPaid: number;
+  balanceDue: number;
+  createdAt: string;
+};
+
+export type InvoiceList = {
+  data: InvoiceSummary[];
+  pagination: {
+    limit: number;
+    offset: number;
+    total: number;
+  };
+};
+
+export type CreateLineItemInput = {
+  productId?: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  taxRate?: number;
+};
+
+export type CreateInvoiceInput = {
+  clientId: string;
+  issueDate?: string;
+  dueDate?: string;
+  currency?: string;
+  notes?: string;
+  terms?: string;
+  lineItems: CreateLineItemInput[];
+};
+
+export type UpdateLineItemInput = {
+  id?: string;
+  productId?: string | null;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  taxRate?: number;
+};
+
+export type UpdateInvoiceInput = {
+  clientId?: string;
+  issueDate?: string | null;
+  dueDate?: string | null;
+  notes?: string | null;
+  terms?: string | null;
+  lineItems?: UpdateLineItemInput[];
+};

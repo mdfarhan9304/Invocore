@@ -25,6 +25,7 @@ type RequestOptions = {
   auth?: boolean;
   org?: boolean;
   query?: Record<string, QueryValue>;
+  headers?: Record<string, string>;
   signal?: AbortSignal;
 };
 
@@ -100,7 +101,15 @@ async function parseError(response: Response): Promise<ApiError> {
 }
 
 export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { method = "GET", body, auth = false, org = false, query, signal } = options;
+  const {
+    method = "GET",
+    body,
+    auth = false,
+    org = false,
+    query,
+    headers: extraHeaders,
+    signal
+  } = options;
 
   const send = async (): Promise<Response> => {
     const headers: Record<string, string> = {};
@@ -114,6 +123,10 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     }
     if (org && session?.activeOrganizationId) {
       headers["X-Organization-Id"] = session.activeOrganizationId;
+    }
+
+    if (extraHeaders) {
+      Object.assign(headers, extraHeaders);
     }
 
     return fetch(buildUrl(path, query), {

@@ -33,14 +33,17 @@ model User {
 }
 
 model Organization {
-  id          String       @id @default(uuid()) @db.Uuid
-  name        String
-  currency    String       @default("USD")
-  memberships Membership[]
-  clients     Client[]
-  auditLogs   AuditLog[]
-  createdAt   DateTime     @default(now()) @map("created_at")
-  updatedAt   DateTime     @updatedAt @map("updated_at")
+  id                     String                  @id @default(uuid()) @db.Uuid
+  name                   String
+  currency               String                  @default("USD")
+  memberships            Membership[]
+  clients                Client[]
+  products               Product[]
+  invoices               Invoice[]
+  invoiceNumberSequences InvoiceNumberSequence[]
+  auditLogs              AuditLog[]
+  createdAt              DateTime                @default(now()) @map("created_at")
+  updatedAt              DateTime                @updatedAt @map("updated_at")
 
   @@map("organizations")
   @@schema("core")
@@ -77,12 +80,109 @@ model Client {
   country        String?
   notes          String?
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  invoices       Invoice[]
   createdAt      DateTime     @default(now()) @map("created_at")
   updatedAt      DateTime     @updatedAt @map("updated_at")
 
   @@index([organizationId])
   @@index([organizationId, name])
   @@map("clients")
+  @@schema("core")
+}
+
+model Product {
+  id             String       @id @default(uuid()) @db.Uuid
+  organizationId String       @map("organization_id") @db.Uuid
+  name           String
+  description    String?
+  unitPrice      Int          @map("unit_price")
+  currency       String       @default("USD")
+  taxRate        Int          @default(0) @map("tax_rate")
+  isActive         Boolean           @default(true) @map("is_active")
+  organization     Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  invoiceLineItems InvoiceLineItem[]
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+
+  @@index([organizationId])
+  @@index([organizationId, name])
+  @@map("products")
+  @@schema("core")
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  SENT
+  PARTIALLY_PAID
+  PAID
+  OVERDUE
+  CANCELLED
+
+  @@schema("core")
+}
+
+model Invoice {
+  id             String            @id @default(uuid()) @db.Uuid
+  organizationId String            @map("organization_id") @db.Uuid
+  clientId       String            @map("client_id") @db.Uuid
+  invoiceNumber  String?           @map("invoice_number")
+  status         InvoiceStatus     @default(DRAFT)
+  issueDate      DateTime?         @map("issue_date") @db.Date
+  dueDate        DateTime?         @map("due_date") @db.Date
+  currency       String            @default("USD")
+  subtotal       Int               @default(0)
+  taxTotal       Int               @default(0) @map("tax_total")
+  total          Int               @default(0)
+  amountPaid     Int               @default(0) @map("amount_paid")
+  balanceDue     Int               @default(0) @map("balance_due")
+  notes          String?
+  terms          String?
+  version        Int               @default(1)
+  organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  client         Client            @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  lineItems      InvoiceLineItem[]
+  createdAt      DateTime          @default(now()) @map("created_at")
+  updatedAt      DateTime          @updatedAt @map("updated_at")
+
+  @@unique([organizationId, invoiceNumber])
+  @@index([organizationId])
+  @@index([organizationId, status])
+  @@index([organizationId, clientId])
+  @@map("invoices")
+  @@schema("core")
+}
+
+model InvoiceLineItem {
+  id          String   @id @default(uuid()) @db.Uuid
+  invoiceId   String   @map("invoice_id") @db.Uuid
+  productId   String?  @map("product_id") @db.Uuid
+  description String
+  quantity    Int
+  unitPrice   Int      @map("unit_price")
+  taxRate     Int      @default(0) @map("tax_rate")
+  lineTotal   Int      @map("line_total")
+  lineTax     Int      @map("line_tax")
+  sortOrder   Int      @default(0) @map("sort_order")
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([invoiceId])
+  @@map("invoice_line_items")
+  @@schema("core")
+}
+
+model InvoiceNumberSequence {
+  id             String       @id @default(uuid()) @db.Uuid
+  organizationId String       @map("organization_id") @db.Uuid
+  year           Int
+  lastNumber     Int          @default(0) @map("last_number")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, year])
+  @@map("invoice_number_sequences")
   @@schema("core")
 }
 
