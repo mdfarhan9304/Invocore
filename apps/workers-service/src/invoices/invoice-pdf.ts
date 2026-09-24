@@ -40,7 +40,7 @@ function formatTaxRate(basisPoints: number): string {
 const colors = {
   primary: "#1e293b",
   secondary: "#64748b",
-  border: "#e2e8f0",
+  border: "#e2e8eb",
   bg: "#f8fafc",
   white: "#ffffff"
 };
@@ -52,7 +52,6 @@ const styles = StyleSheet.create({
     fontFamily: "Helvetica",
     color: colors.primary
   },
-
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -76,7 +75,6 @@ const styles = StyleSheet.create({
     fontFamily: "Helvetica-Bold",
     marginBottom: 6
   },
-
   billingRow: {
     flexDirection: "row",
     gap: 40,
@@ -106,7 +104,6 @@ const styles = StyleSheet.create({
     color: colors.secondary,
     marginBottom: 2
   },
-
   tableHeader: {
     flexDirection: "row",
     backgroundColor: colors.primary,
@@ -131,7 +128,6 @@ const styles = StyleSheet.create({
   colPrice: { width: "18%", textAlign: "right" as const },
   colTax: { width: "12%", textAlign: "right" as const },
   colLineTotal: { width: "25%", textAlign: "right" as const },
-
   totalsContainer: {
     marginTop: 16,
     alignItems: "flex-end"
@@ -168,7 +164,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: "Helvetica-Bold"
   },
-
   notesSection: {
     marginTop: 30,
     paddingTop: 16,
@@ -188,7 +183,6 @@ const styles = StyleSheet.create({
     color: colors.secondary,
     lineHeight: 1.5
   },
-
   footer: {
     position: "absolute" as const,
     bottom: 30,
@@ -202,9 +196,9 @@ const styles = StyleSheet.create({
 
 function InvoicePdfDocument(props: { data: PdfInvoiceData }) {
   const { data } = props;
-  const c = data.currency;
+  const currency = data.currency;
 
-  const headerEl = React.createElement(
+  const header = React.createElement(
     View,
     { style: styles.header },
     React.createElement(
@@ -229,7 +223,7 @@ function InvoicePdfDocument(props: { data: PdfInvoiceData }) {
     )
   );
 
-  const billingEl = React.createElement(
+  const billing = React.createElement(
     View,
     { style: styles.billingRow },
     React.createElement(
@@ -252,7 +246,7 @@ function InvoicePdfDocument(props: { data: PdfInvoiceData }) {
     )
   );
 
-  const tableHeaderEl = React.createElement(
+  const tableHeader = React.createElement(
     View,
     { style: styles.tableHeader },
     React.createElement(
@@ -274,23 +268,23 @@ function InvoicePdfDocument(props: { data: PdfInvoiceData }) {
     )
   );
 
-  const tableRowEls = data.lineItems.map((item, index) =>
+  const tableRows = data.lineItems.map((item, index) =>
     React.createElement(
       View,
       { style: styles.tableRow, key: String(index) },
       React.createElement(Text, { style: styles.colDescription }, item.description),
       React.createElement(Text, { style: styles.colQty }, String(item.quantity)),
-      React.createElement(Text, { style: styles.colPrice }, formatMoney(item.unitPrice, c)),
+      React.createElement(Text, { style: styles.colPrice }, formatMoney(item.unitPrice, currency)),
       React.createElement(Text, { style: styles.colTax }, formatTaxRate(item.taxRate)),
       React.createElement(
         Text,
         { style: { ...styles.colLineTotal, fontFamily: "Helvetica-Bold" } },
-        formatMoney(item.lineTotal + item.lineTax, c)
+        formatMoney(item.lineTotal + item.lineTax, currency)
       )
     )
   );
 
-  const totalsEl = React.createElement(
+  const totals = React.createElement(
     View,
     { style: styles.totalsContainer },
     React.createElement(
@@ -300,20 +294,32 @@ function InvoicePdfDocument(props: { data: PdfInvoiceData }) {
         View,
         { style: styles.totalsRow },
         React.createElement(Text, { style: styles.totalsLabel }, "Subtotal"),
-        React.createElement(Text, { style: styles.totalsValue }, formatMoney(data.subtotal, c))
+        React.createElement(
+          Text,
+          { style: styles.totalsValue },
+          formatMoney(data.subtotal, currency)
+        )
       ),
       React.createElement(
         View,
         { style: styles.totalsRow },
         React.createElement(Text, { style: styles.totalsLabel }, "Tax"),
-        React.createElement(Text, { style: styles.totalsValue }, formatMoney(data.taxTotal, c))
+        React.createElement(
+          Text,
+          { style: styles.totalsValue },
+          formatMoney(data.taxTotal, currency)
+        )
       ),
       React.createElement(View, { style: styles.totalsDivider }),
       React.createElement(
         View,
         { style: styles.totalsRow },
         React.createElement(Text, { style: styles.grandTotalLabel }, "Total"),
-        React.createElement(Text, { style: styles.grandTotalValue }, formatMoney(data.total, c))
+        React.createElement(
+          Text,
+          { style: styles.grandTotalValue },
+          formatMoney(data.total, currency)
+        )
       ),
       data.amountPaid > 0
         ? React.createElement(
@@ -326,7 +332,7 @@ function InvoicePdfDocument(props: { data: PdfInvoiceData }) {
               React.createElement(
                 Text,
                 { style: styles.totalsValue },
-                formatMoney(data.amountPaid, c)
+                formatMoney(data.amountPaid, currency)
               )
             ),
             React.createElement(
@@ -336,7 +342,7 @@ function InvoicePdfDocument(props: { data: PdfInvoiceData }) {
               React.createElement(
                 Text,
                 { style: styles.grandTotalValue },
-                formatMoney(data.balanceDue, c)
+                formatMoney(data.balanceDue, currency)
               )
             )
           )
@@ -344,9 +350,9 @@ function InvoicePdfDocument(props: { data: PdfInvoiceData }) {
     )
   );
 
-  const notesEls: React.ReactElement[] = [];
+  const notes: React.ReactElement[] = [];
   if (data.notes) {
-    notesEls.push(
+    notes.push(
       React.createElement(
         View,
         { style: styles.notesSection, key: "notes" },
@@ -356,7 +362,7 @@ function InvoicePdfDocument(props: { data: PdfInvoiceData }) {
     );
   }
   if (data.terms) {
-    notesEls.push(
+    notes.push(
       React.createElement(
         View,
         { style: data.notes ? { marginTop: 12 } : styles.notesSection, key: "terms" },
@@ -366,22 +372,10 @@ function InvoicePdfDocument(props: { data: PdfInvoiceData }) {
     );
   }
 
-  const footerEl = React.createElement(
+  const footer = React.createElement(
     Text,
     { style: styles.footer },
     `Generated by ${data.organizationName} • ${data.invoiceNumber ?? "Draft"}`
-  );
-
-  const pageContent = React.createElement(
-    Page,
-    { size: "A4", style: styles.page },
-    headerEl,
-    billingEl,
-    tableHeaderEl,
-    ...tableRowEls,
-    totalsEl,
-    ...notesEls,
-    footerEl
   );
 
   return React.createElement(
@@ -390,7 +384,17 @@ function InvoicePdfDocument(props: { data: PdfInvoiceData }) {
       title: `Invoice ${data.invoiceNumber ?? "Draft"}`,
       author: data.organizationName
     },
-    pageContent
+    React.createElement(
+      Page,
+      { size: "A4", style: styles.page },
+      header,
+      billing,
+      tableHeader,
+      ...tableRows,
+      totals,
+      ...notes,
+      footer
+    )
   );
 }
 

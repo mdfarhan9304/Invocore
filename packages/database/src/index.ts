@@ -7,6 +7,7 @@ export type {
   AuditLog,
   Client,
   Invoice,
+  InvoiceDocument,
   InvoiceLineItem,
   InvoiceNumberSequence,
   Membership,
@@ -16,7 +17,7 @@ export type {
   RefreshToken,
   User
 } from "../generated/client/client.js";
-export { InvoiceStatus, Prisma, Role } from "../generated/client/client.js";
+export { InvoiceDocumentStatus, InvoiceStatus, Prisma, Role } from "../generated/client/client.js";
 
 export const PRISMA_SCHEMAS = {
   core: "core",

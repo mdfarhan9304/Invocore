@@ -1,3 +1,6 @@
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
 export type NodeEnv = "development" | "test" | "production";
 
 export type ServicePorts = {
@@ -17,7 +20,15 @@ export type AppConfig = {
   nodeEnv: NodeEnv;
   redisUrl: string;
   servicePorts: ServicePorts;
+  storage: {
+    invoicePdfsDirectory: string;
+  };
 };
+
+const defaultInvoicePdfsDirectory = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  "../../../storage/invoices"
+);
 
 type Environment = Record<string, string | undefined>;
 
@@ -85,6 +96,11 @@ export function loadConfig(env: Environment = process.env): AppConfig {
       coreApi: readInteger(env, "CORE_API_PORT", 3001),
       paymentsService: readInteger(env, "PAYMENTS_SERVICE_PORT", 3002),
       workersService: readInteger(env, "WORKERS_SERVICE_PORT", 3003)
+    },
+    storage: {
+      invoicePdfsDirectory: env.INVOICE_PDF_STORAGE_PATH
+        ? resolve(process.cwd(), env.INVOICE_PDF_STORAGE_PATH)
+        : defaultInvoicePdfsDirectory
     }
   };
 }

@@ -1,6 +1,12 @@
 import { request } from "./client";
 import { getSessionSnapshot } from "@/lib/session";
-import type { CreateInvoiceInput, Invoice, InvoiceList, UpdateInvoiceInput } from "./types";
+import type {
+  CreateInvoiceInput,
+  Invoice,
+  InvoiceList,
+  InvoicePdfDocument,
+  UpdateInvoiceInput
+} from "./types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
@@ -14,6 +20,31 @@ export type ListInvoicesParams = {
 
 function versionHeaders(version: number): Record<string, string> {
   return { "X-Expected-Version": String(version) };
+}
+
+async function waitForPdf(
+  id: string,
+  headers: Record<string, string>,
+  initialDocument: InvoicePdfDocument
+): Promise<void> {
+  let document = initialDocument;
+
+  for (let attempt = 0; attempt < 90; attempt += 1) {
+    if (document.status === "READY") return;
+    if (document.status === "FAILED") {
+      throw new Error(document.error ?? "PDF generation failed");
+    }
+
+    await new Promise((resolve) => window.setTimeout(resolve, 1000));
+    const response = await fetch(`${API_BASE_URL}/invoices/${id}/pdf/status`, { headers });
+    if (!response.ok) {
+      throw new Error("Failed to check PDF status");
+    }
+    const body = (await response.json()) as { document: InvoicePdfDocument };
+    document = body.document;
+  }
+
+  throw new Error("PDF generation timed out");
 }
 
 export const invoicesApi = {
@@ -85,12 +116,20 @@ export const invoicesApi = {
       headers["X-Organization-Id"] = session.activeOrganizationId;
     }
 
-    const response = await fetch(`${API_BASE_URL}/invoices/${id}/pdf`, { headers });
+    const requestPdf = async (): Promise<Response> => {
+      const response = await fetch(`${API_BASE_URL}/invoices/${id}/pdf`, { headers });
+      if (response.status === 202) {
+        const body = (await response.json()) as { document: InvoicePdfDocument };
+        await waitForPdf(id, headers, body.document);
+        return requestPdf();
+      }
+      if (!response.ok) {
+        throw new Error("Failed to download PDF");
+      }
+      return response;
+    };
 
-    if (!response.ok) {
-      throw new Error("Failed to download PDF");
-    }
-
+    const response = await requestPdf();
     const blob = await response.blob();
     const disposition = response.headers.get("Content-Disposition");
     const filenameMatch = disposition?.match(/filename="?([^"]+)"?/);

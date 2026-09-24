@@ -10,9 +10,15 @@
   },
   "dependencies": {
     "@invocore/config": "workspace:*",
-    "@invocore/shared": "workspace:*"
+    "@invocore/database": "workspace:*",
+    "@invocore/shared": "workspace:*",
+    "@react-pdf/renderer": "^4.9.0",
+    "bullmq": "^6.3.8",
+    "ioredis": "^6.0.0",
+    "react": "19.2.8"
   },
   "devDependencies": {
+    "@types/react": "^19.3.0",
     "tsx": "^4.23.13",
     "typescript": "^5.9.3",
     "vitest": "^5.0.0"

@@ -93,7 +93,7 @@ export default function InvoiceDetailPage() {
     try {
       await invoicesApi.downloadPdf(invoiceId);
     } catch (dlError) {
-      setActionError(dlError instanceof ApiError ? dlError.message : "Failed to download PDF.");
+      setActionError(dlError instanceof Error ? dlError.message : "Failed to download PDF.");
     } finally {
       setDownloading(false);
     }

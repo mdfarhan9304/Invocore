@@ -133,6 +133,15 @@ export type UpdateProductInput = {
 export type InvoiceStatus =
   "DRAFT" | "ISSUED" | "SENT" | "PARTIALLY_PAID" | "PAID" | "OVERDUE" | "CANCELLED";
 
+export type InvoiceDocumentStatus = "QUEUED" | "PROCESSING" | "READY" | "FAILED";
+
+export type InvoicePdfDocument = {
+  id: string;
+  status: InvoiceDocumentStatus;
+  invoiceVersion: number;
+  error: string | null;
+};
+
 export type InvoiceLineItem = {
   id: string;
   productId: string | null;

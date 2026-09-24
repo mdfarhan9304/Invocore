@@ -12,9 +12,9 @@
     "@invocore/config": "workspace:*",
     "@invocore/database": "workspace:*",
     "@invocore/shared": "workspace:*",
-    "@react-pdf/renderer": "^4.9.0",
+    "bullmq": "^6.3.8",
     "express": "^5.2.1",
-    "react": "19.2.8"
+    "ioredis": "^6.0.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",

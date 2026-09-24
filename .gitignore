@@ -8,6 +8,7 @@ build/
 .next/
 coverage/
 next-env.d.ts
+storage/
 
 # Environment
 .env

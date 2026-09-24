@@ -1,4 +1,5 @@
-import { InvoiceStatus } from "@invocore/database";
+import { InvoiceDocumentStatus, InvoiceStatus } from "@invocore/database";
+import type { InvoiceDocument } from "@invocore/database";
 import { AppError } from "@invocore/shared";
 
 import type { CoreDbClient } from "../../common/database/core-db-client.js";
@@ -14,6 +15,7 @@ import type {
   UpdateLineItemInput
 } from "./dto/invoices.dto.js";
 import { createInvoiceNumberService } from "./invoice-number.service.js";
+import type { InvoicePdfQueue } from "./invoice-pdf.queue.js";
 import { assertTransition } from "./invoice-transitions.js";
 import type {
   InvoiceLineItemRecord,
@@ -50,6 +52,24 @@ function computeTotals(
 function formatDate(date: Date | null): string | null {
   if (!date) return null;
   return date.toISOString().split("T")[0]!;
+}
+
+type InvoiceDocumentDto = {
+  id: string;
+  status: InvoiceDocumentStatus;
+  invoiceVersion: number;
+  errorMessage: string | null;
+  storagePath: string | null;
+};
+
+function toInvoiceDocumentDto(record: InvoiceDocument): InvoiceDocumentDto {
+  return {
+    id: record.id,
+    status: record.status,
+    invoiceVersion: record.invoiceVersion,
+    errorMessage: record.errorMessage,
+    storagePath: record.storagePath
+  };
 }
 
 function toLineItemDto(record: InvoiceLineItemRecord): InvoiceLineItemDto {
@@ -163,17 +183,21 @@ export type InvoicesService = {
     expectedVersion: number;
   }): Promise<InvoiceDto>;
 
-  getInvoicePdfData(input: { invoiceId: string; organizationId: string }): Promise<{
-    invoice: InvoiceDto;
-    organizationName: string;
-    clientEmail: string | null;
-    clientAddress: string | null;
-  }>;
+  getInvoicePdfStatus(input: {
+    invoiceId: string;
+    organizationId: string;
+  }): Promise<InvoiceDocumentDto | null>;
+
+  requestInvoicePdf(input: {
+    invoiceId: string;
+    organizationId: string;
+  }): Promise<InvoiceDocumentDto>;
 };
 
 export function createInvoicesService(
   invoicesRepository: InvoicesRepository,
-  dbClient: CoreDbClient
+  dbClient: CoreDbClient,
+  invoicePdfQueue: InvoicePdfQueue
 ): InvoicesService {
   return {
     async createInvoice(input) {
@@ -415,7 +439,7 @@ export function createInvoicesService(
       return toInvoiceDto(record);
     },
 
-    async getInvoicePdfData(input) {
+    async getInvoicePdfStatus(input) {
       const record = await invoicesRepository.findById({
         id: input.invoiceId,
         organizationId: input.organizationId
@@ -424,38 +448,85 @@ export function createInvoicesService(
         throw invoiceNotFound();
       }
 
-      const [org, client] = await Promise.all([
-        dbClient.organization.findUnique({
-          select: { name: true },
-          where: { id: input.organizationId }
-        }),
-        dbClient.client.findFirst({
-          select: {
-            email: true,
-            addressLine1: true,
-            addressLine2: true,
-            city: true,
-            state: true,
-            postalCode: true,
-            country: true
-          },
-          where: { id: record.clientId, organizationId: input.organizationId }
-        })
-      ]);
+      const document = await dbClient.invoiceDocument.findUnique({
+        where: {
+          invoiceId_invoiceVersion: {
+            invoiceId: record.id,
+            invoiceVersion: record.version
+          }
+        }
+      });
 
-      const addressParts = [
-        client?.addressLine1,
-        client?.addressLine2,
-        [client?.city, client?.state, client?.postalCode].filter(Boolean).join(", "),
-        client?.country
-      ].filter(Boolean);
+      return document ? toInvoiceDocumentDto(document) : null;
+    },
 
-      return {
-        invoice: toInvoiceDto(record),
-        organizationName: org?.name ?? "Unknown",
-        clientEmail: client?.email ?? null,
-        clientAddress: addressParts.length > 0 ? addressParts.join("\n") : null
-      };
+    async requestInvoicePdf(input) {
+      const record = await invoicesRepository.findById({
+        id: input.invoiceId,
+        organizationId: input.organizationId
+      });
+      if (!record) {
+        throw invoiceNotFound();
+      }
+
+      const existing = await dbClient.invoiceDocument.findUnique({
+        where: {
+          invoiceId_invoiceVersion: {
+            invoiceId: record.id,
+            invoiceVersion: record.version
+          }
+        }
+      });
+
+      if (existing?.status === InvoiceDocumentStatus.READY && existing.storagePath) {
+        return toInvoiceDocumentDto(existing);
+      }
+
+      if (existing?.status === InvoiceDocumentStatus.FAILED) {
+        await invoicePdfQueue.remove(existing.id).catch(() => undefined);
+      }
+
+      const document = existing
+        ? await dbClient.invoiceDocument.update({
+            where: { id: existing.id },
+            data: {
+              status: InvoiceDocumentStatus.QUEUED,
+              storagePath: null,
+              errorMessage: null,
+              completedAt: null
+            }
+          })
+        : await dbClient.invoiceDocument.create({
+            data: {
+              organizationId: input.organizationId,
+              invoiceId: record.id,
+              invoiceVersion: record.version
+            }
+          });
+
+      try {
+        await invoicePdfQueue.add({
+          documentId: document.id,
+          invoiceId: record.id,
+          organizationId: input.organizationId,
+          invoiceVersion: record.version
+        });
+      } catch {
+        await dbClient.invoiceDocument.update({
+          where: { id: document.id },
+          data: {
+            status: InvoiceDocumentStatus.FAILED,
+            errorMessage: "PDF generation could not be queued."
+          }
+        });
+        throw new AppError(
+          "PDF generation is temporarily unavailable",
+          "PDF_QUEUE_UNAVAILABLE",
+          503
+        );
+      }
+
+      return toInvoiceDocumentDto(document);
     }
   };
 }

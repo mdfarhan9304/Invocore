@@ -91,13 +91,13 @@ model Client {
 }
 
 model Product {
-  id             String       @id @default(uuid()) @db.Uuid
-  organizationId String       @map("organization_id") @db.Uuid
-  name           String
-  description    String?
-  unitPrice      Int          @map("unit_price")
-  currency       String       @default("USD")
-  taxRate        Int          @default(0) @map("tax_rate")
+  id               String            @id @default(uuid()) @db.Uuid
+  organizationId   String            @map("organization_id") @db.Uuid
+  name             String
+  description      String?
+  unitPrice        Int               @map("unit_price")
+  currency         String            @default("USD")
+  taxRate          Int               @default(0) @map("tax_rate")
   isActive         Boolean           @default(true) @map("is_active")
   organization     Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   invoiceLineItems InvoiceLineItem[]
@@ -122,6 +122,15 @@ enum InvoiceStatus {
   @@schema("core")
 }
 
+enum InvoiceDocumentStatus {
+  QUEUED
+  PROCESSING
+  READY
+  FAILED
+
+  @@schema("core")
+}
+
 model Invoice {
   id             String            @id @default(uuid()) @db.Uuid
   organizationId String            @map("organization_id") @db.Uuid
@@ -142,14 +151,35 @@ model Invoice {
   organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   client         Client            @relation(fields: [clientId], references: [id], onDelete: Restrict)
   lineItems      InvoiceLineItem[]
+  documents      InvoiceDocument[]
   createdAt      DateTime          @default(now()) @map("created_at")
-  updatedAt      DateTime          @updatedAt @map("updated_at")
+
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@unique([organizationId, invoiceNumber])
   @@index([organizationId])
   @@index([organizationId, status])
   @@index([organizationId, clientId])
   @@map("invoices")
+  @@schema("core")
+}
+
+model InvoiceDocument {
+  id             String                @id @default(uuid()) @db.Uuid
+  organizationId String                @map("organization_id") @db.Uuid
+  invoiceId      String                @map("invoice_id") @db.Uuid
+  invoiceVersion Int                   @map("invoice_version")
+  status         InvoiceDocumentStatus @default(QUEUED)
+  storagePath    String?               @map("storage_path")
+  errorMessage   String?               @map("error_message")
+  invoice        Invoice               @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  createdAt      DateTime              @default(now()) @map("created_at")
+  updatedAt      DateTime              @updatedAt @map("updated_at")
+  completedAt    DateTime?             @map("completed_at")
+
+  @@unique([invoiceId, invoiceVersion])
+  @@index([organizationId, status])
+  @@map("invoice_documents")
   @@schema("core")
 }
 

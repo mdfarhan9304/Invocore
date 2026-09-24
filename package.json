@@ -13,6 +13,7 @@
     "build": "tsc --noEmit -p tsconfig.json && pnpm -r --if-present build",
     "check": "pnpm lint && pnpm format && pnpm test && pnpm build",
     "dev": "pnpm -r --parallel --if-present dev",
+    "start": "docker compose up -d --wait && pnpm dev",
     "format": "prettier --check .",
     "format:write": "prettier --write .",
     "lint": "eslint .",

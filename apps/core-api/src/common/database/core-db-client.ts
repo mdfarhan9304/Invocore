@@ -4,6 +4,7 @@ export type CoreDbClient = Pick<
   PrismaClient,
   | "client"
   | "invoice"
+  | "invoiceDocument"
   | "invoiceLineItem"
   | "invoiceNumberSequence"
   | "membership"

@@ -516,7 +516,7 @@ invocore/
 │   ├── core-api/           # REST API — auth, invoices, clients, products
 │   ├── web/                # Next.js frontend
 │   ├── payments-service/   # Payment processing (planned)
-│   └── workers-service/    # Background jobs (planned)
+│   └── workers-service/    # Background jobs — PDF rendering
 └── packages/
     ├── database/           # Prisma schema + generated client
     ├── config/             # Shared configuration + tsconfigs
@@ -919,7 +919,8 @@ pnpm dev              # Starts all apps in parallel
 ## What's next
 
 - **payments-service** — Stripe integration with webhook signature verification
-- **workers-service** — Background jobs for PDF generation, email sending
+- **workers-service** — Email sending, reminders, and overdue jobs
+- **PDF generation** — Runs through BullMQ, retries transient failures, and stores local development files outside the web request path
 - **Audit log queries** — Expose audit trail through API
 
 ---
