@@ -12,6 +12,7 @@
     "@invocore/config": "workspace:*",
     "@invocore/database": "workspace:*",
     "@invocore/shared": "workspace:*",
+    "axios": "^1.20.0",
     "bullmq": "^6.3.8",
     "express": "^5.2.1",
     "ioredis": "^6.0.0"

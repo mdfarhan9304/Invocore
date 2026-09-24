@@ -9,6 +9,8 @@ export type CoreDbClient = Pick<
   | "invoiceNumberSequence"
   | "membership"
   | "organization"
+  | "payment"
+  | "paymentLink"
   | "product"
   | "refreshToken"
   | "user"

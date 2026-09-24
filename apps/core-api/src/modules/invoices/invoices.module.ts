@@ -16,11 +16,12 @@ export function createInvoicesModule(client: PrismaClient = prisma): Router {
   const router = createRouter();
   const membershipsRepository = createMembershipsRepository(client);
   const invoicesRepository = createInvoicesRepository(client);
-  const invoicePdfQueue = createInvoicePdfQueue(loadConfig().redisUrl);
+  const config = loadConfig();
+  const invoicePdfQueue = createInvoicePdfQueue(config.redisUrl);
   const invoicesService = createInvoicesService(invoicesRepository, client, invoicePdfQueue);
 
   router.use(createAuthGuard(), createTenantMiddleware({ membershipsRepository }));
-  router.use(createInvoicesController(invoicesService));
+  router.use(createInvoicesController(invoicesService, config.redisUrl));
 
   return router;
 }

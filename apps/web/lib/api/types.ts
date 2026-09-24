@@ -135,6 +135,35 @@ export type InvoiceStatus =
 
 export type InvoiceDocumentStatus = "QUEUED" | "PROCESSING" | "READY" | "FAILED";
 
+export type DashboardSummary = {
+  totalRevenue: number;
+  paidThisMonth: number;
+  outstanding: number;
+  outstandingCount: number;
+  overdue: number;
+  overdueCount: number;
+  revenueByDay: { date: string; amount: number }[];
+  recentInvoices: {
+    id: string;
+    invoiceNumber: string | null;
+    status: InvoiceStatus;
+    clientName: string;
+    updatedAt: string;
+  }[];
+};
+
+export type PaymentLinkStatus = "ACTIVE" | "PARTIALLY_PAID" | "PAID" | "CANCELLED" | "EXPIRED";
+
+export type PaymentLink = {
+  id: string;
+  url: string;
+  amount: number;
+  amountPaid: number;
+  currency: string;
+  status: PaymentLinkStatus;
+  expiresAt: string | null;
+};
+
 export type InvoicePdfDocument = {
   id: string;
   status: InvoiceDocumentStatus;

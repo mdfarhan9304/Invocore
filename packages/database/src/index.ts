@@ -12,12 +12,21 @@ export type {
   InvoiceNumberSequence,
   Membership,
   Organization,
+  Payment,
+  PaymentLink,
   PrismaClient,
   Product,
   RefreshToken,
   User
 } from "../generated/client/client.js";
-export { InvoiceDocumentStatus, InvoiceStatus, Prisma, Role } from "../generated/client/client.js";
+export {
+  InvoiceDocumentStatus,
+  InvoiceStatus,
+  PaymentLinkStatus,
+  PaymentStatus,
+  Prisma,
+  Role
+} from "../generated/client/client.js";
 
 export const PRISMA_SCHEMAS = {
   core: "core",

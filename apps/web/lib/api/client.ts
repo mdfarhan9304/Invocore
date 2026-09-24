@@ -1,3 +1,5 @@
+import axios, { type AxiosResponse } from "axios";
+
 import { getSessionSnapshot, setSession, updateSessionTokens } from "@/lib/session";
 import type { ApiErrorBody, RefreshResponse } from "./types";
 
@@ -52,21 +54,16 @@ async function performRefresh(): Promise<boolean> {
   }
 
   try {
-    const response = await fetch(buildUrl("/auth/refresh"), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ refreshToken: session.refreshToken })
-    });
+    const response = await axios.post<RefreshResponse>(
+      buildUrl("/auth/refresh"),
+      { refreshToken: session.refreshToken },
+      { headers: { "Content-Type": "application/json" } }
+    );
 
-    if (!response.ok) {
-      setSession(null);
-      return false;
-    }
-
-    const data = (await response.json()) as RefreshResponse;
-    updateSessionTokens(data.accessToken, data.refreshToken);
+    updateSessionTokens(response.data.accessToken, response.data.refreshToken);
     return true;
   } catch {
+    setSession(null);
     return false;
   }
 }
@@ -81,20 +78,18 @@ function refreshTokens(): Promise<boolean> {
   return refreshPromise;
 }
 
-async function parseError(response: Response): Promise<ApiError> {
+function parseError(response: AxiosResponse<unknown>): ApiError {
   let code = "UNKNOWN_ERROR";
   let message = response.statusText || "Request failed";
   let details: unknown;
 
-  try {
-    const body = (await response.json()) as ApiErrorBody;
-    if (body?.error) {
+  if (response.data && typeof response.data === "object") {
+    const body = response.data as Partial<ApiErrorBody>;
+    if (body.error) {
       code = body.error.code ?? code;
       message = body.error.message ?? message;
       details = body.error.details;
     }
-  } catch {
-    // Response had no JSON body; keep defaults.
   }
 
   return new ApiError(response.status, code, message, details);
@@ -111,7 +106,7 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     signal
   } = options;
 
-  const send = async (): Promise<Response> => {
+  const send = () => {
     const headers: Record<string, string> = {};
     if (body !== undefined) {
       headers["Content-Type"] = "application/json";
@@ -129,11 +124,13 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
       Object.assign(headers, extraHeaders);
     }
 
-    return fetch(buildUrl(path, query), {
+    return axios.request<T>({
+      url: buildUrl(path, query),
       method,
       headers,
-      body: body === undefined ? undefined : JSON.stringify(body),
-      signal
+      data: body,
+      signal,
+      validateStatus: () => true
     });
   };
 
@@ -150,9 +147,11 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     return undefined as T;
   }
 
-  if (!response.ok) {
-    throw await parseError(response);
+  if (!response.status || response.status < 200 || response.status >= 300) {
+    throw parseError(response);
   }
 
-  return (await response.json()) as T;
+  return response.data;
 }
+
+export { API_BASE_URL };

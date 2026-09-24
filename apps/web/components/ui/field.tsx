@@ -4,7 +4,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label";
 
 type FieldProps = {
-  label: string;
+  label?: string;
   htmlFor: string;
   error?: string;
   hint?: string;
@@ -15,10 +15,12 @@ type FieldProps = {
 export function Field({ label, htmlFor, error, hint, required, children }: FieldProps) {
   return (
     <div className="space-y-1.5">
-      <Label htmlFor={htmlFor}>
-        {label}
-        {required ? <span className="text-destructive"> *</span> : null}
-      </Label>
+      {label ? (
+        <Label htmlFor={htmlFor}>
+          {label}
+          {required ? <span className="text-destructive"> *</span> : null}
+        </Label>
+      ) : null}
       {children}
       {hint && !error ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
       {error ? (

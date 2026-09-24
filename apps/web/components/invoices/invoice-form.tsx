@@ -216,7 +216,7 @@ export function InvoiceForm({ invoice }: InvoiceFormProps) {
         <LineItemsEditor
           items={lineItems}
           products={products}
-          currency="USD"
+          currency="INR"
           onChange={setLineItems}
         />
       </div>

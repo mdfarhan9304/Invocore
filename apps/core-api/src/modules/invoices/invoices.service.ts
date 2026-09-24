@@ -217,7 +217,7 @@ export function createInvoicesService(
       const record = await invoicesRepository.create({
         organizationId: input.organizationId,
         clientId: input.data.clientId,
-        currency: input.data.currency ?? "USD",
+        currency: input.data.currency ?? "INR",
         issueDate: input.data.issueDate ? parseIsoDate(input.data.issueDate) : undefined,
         dueDate: input.data.dueDate ? parseIsoDate(input.data.dueDate) : undefined,
         notes: input.data.notes,

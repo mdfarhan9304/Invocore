@@ -1,5 +1,17 @@
+import { existsSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+
+const localEnvPath = [
+  process.env.ENV_FILE,
+  resolve(process.cwd(), ".env"),
+  resolve(process.cwd(), "../../.env"),
+  resolve(dirname(fileURLToPath(import.meta.url)), "../../../.env")
+].find((path): path is string => typeof path === "string" && existsSync(path));
+
+if (localEnvPath) {
+  process.loadEnvFile(localEnvPath);
+}
 
 export type NodeEnv = "development" | "test" | "production";
 
@@ -20,6 +32,12 @@ export type AppConfig = {
   nodeEnv: NodeEnv;
   redisUrl: string;
   servicePorts: ServicePorts;
+  payments: {
+    appUrl: string;
+    razorpayKeyId: string;
+    razorpayKeySecret: string;
+    razorpayWebhookSecret: string;
+  };
   storage: {
     invoicePdfsDirectory: string;
   };
@@ -96,6 +114,12 @@ export function loadConfig(env: Environment = process.env): AppConfig {
       coreApi: readInteger(env, "CORE_API_PORT", 3001),
       paymentsService: readInteger(env, "PAYMENTS_SERVICE_PORT", 3002),
       workersService: readInteger(env, "WORKERS_SERVICE_PORT", 3003)
+    },
+    payments: {
+      appUrl: env.APP_URL ?? "http://localhost:3000",
+      razorpayKeyId: env.RAZORPAY_KEY_ID ?? "",
+      razorpayKeySecret: env.RAZORPAY_KEY_SECRET ?? "",
+      razorpayWebhookSecret: env.RAZORPAY_WEBHOOK_SECRET ?? ""
     },
     storage: {
       invoicePdfsDirectory: env.INVOICE_PDF_STORAGE_PATH

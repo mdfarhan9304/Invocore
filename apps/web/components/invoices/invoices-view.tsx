@@ -1,5 +1,6 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { FileTextIcon, PlusIcon, SearchIcon } from "lucide-react";
@@ -36,11 +37,30 @@ export function InvoicesView() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<InvoiceStatus | "ALL">("ALL");
   const [page, setPage] = useState(0);
-  const [refreshKey, setRefreshKey] = useState(0);
 
-  const [list, setList] = useState<InvoiceList | null>(null);
-  const [status, setStatus] = useState<LoadStatus>("loading");
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const listQuery = useQuery({
+    queryKey: ["invoices", organizationId, search, statusFilter, page],
+    queryFn: () =>
+      invoicesApi.list({
+        search: search || undefined,
+        status: statusFilter === "ALL" ? undefined : statusFilter,
+        limit: PAGE_SIZE,
+        offset: page * PAGE_SIZE
+      }),
+    enabled: Boolean(organizationId),
+    placeholderData: (previousData) => previousData
+  });
+  const list: InvoiceList | null = listQuery.data ?? null;
+  const status: LoadStatus = listQuery.isPending
+    ? "loading"
+    : listQuery.isError
+      ? "error"
+      : "ready";
+  const errorMessage = listQuery.error
+    ? listQuery.error instanceof ApiError
+      ? listQuery.error.message
+      : "Failed to load invoices."
+    : null;
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -49,38 +69,6 @@ export function InvoicesView() {
     }, 300);
     return () => clearTimeout(timeout);
   }, [searchInput]);
-
-  useEffect(() => {
-    if (!organizationId) return;
-
-    let ignore = false;
-    setStatus("loading");
-    setErrorMessage(null);
-
-    invoicesApi
-      .list({
-        search: search || undefined,
-        status: statusFilter === "ALL" ? undefined : statusFilter,
-        limit: PAGE_SIZE,
-        offset: page * PAGE_SIZE
-      })
-      .then((result) => {
-        if (ignore) return;
-        setList(result);
-        setStatus("ready");
-      })
-      .catch((loadError) => {
-        if (ignore) return;
-        setErrorMessage(
-          loadError instanceof ApiError ? loadError.message : "Failed to load invoices."
-        );
-        setStatus("error");
-      });
-
-    return () => {
-      ignore = true;
-    };
-  }, [organizationId, search, statusFilter, page, refreshKey]);
 
   const total = list?.pagination.total ?? 0;
   const offset = page * PAGE_SIZE;
@@ -141,7 +129,7 @@ export function InvoicesView() {
         <FormAlert>
           <div className="flex items-center justify-between gap-4">
             <span>{errorMessage}</span>
-            <Button variant="secondary" size="sm" onClick={() => setRefreshKey((key) => key + 1)}>
+            <Button variant="secondary" size="sm" onClick={() => void listQuery.refetch()}>
               Retry
             </Button>
           </div>

@@ -7,7 +7,6 @@ import {
   useEffect,
   useMemo,
   useState,
-  useSyncExternalStore,
   type ReactNode
 } from "react";
 
@@ -15,12 +14,11 @@ import { authApi, type LoginInput, type RegisterInput } from "@/lib/api/auth";
 import { organizationsApi } from "@/lib/api/organizations";
 import type { AuthUser, UserOrganization } from "@/lib/api/types";
 import {
-  getServerSessionSnapshot,
   getSessionSnapshot,
   hydrateSession,
   setActiveOrganizationId,
   setSession,
-  subscribeToSession
+  useSessionStore
 } from "@/lib/session";
 
 type AuthContextValue = {
@@ -38,11 +36,7 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const session = useSyncExternalStore(
-    subscribeToSession,
-    getSessionSnapshot,
-    getServerSessionSnapshot
-  );
+  const session = useSessionStore((state) => state.session);
   const [organizations, setOrganizations] = useState<UserOrganization[]>([]);
   const [isInitializing, setIsInitializing] = useState(true);
 

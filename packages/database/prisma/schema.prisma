@@ -131,6 +131,23 @@ enum InvoiceDocumentStatus {
   @@schema("core")
 }
 
+enum PaymentLinkStatus {
+  ACTIVE
+  PARTIALLY_PAID
+  PAID
+  CANCELLED
+  EXPIRED
+
+  @@schema("core")
+}
+
+enum PaymentStatus {
+  CAPTURED
+  FAILED
+
+  @@schema("core")
+}
+
 model Invoice {
   id             String            @id @default(uuid()) @db.Uuid
   organizationId String            @map("organization_id") @db.Uuid
@@ -139,7 +156,7 @@ model Invoice {
   status         InvoiceStatus     @default(DRAFT)
   issueDate      DateTime?         @map("issue_date") @db.Date
   dueDate        DateTime?         @map("due_date") @db.Date
-  currency       String            @default("USD")
+  currency       String            @default("INR")
   subtotal       Int               @default(0)
   taxTotal       Int               @default(0) @map("tax_total")
   total          Int               @default(0)
@@ -152,6 +169,8 @@ model Invoice {
   client         Client            @relation(fields: [clientId], references: [id], onDelete: Restrict)
   lineItems      InvoiceLineItem[]
   documents      InvoiceDocument[]
+  paymentLinks   PaymentLink[]
+  payments       Payment[]
   createdAt      DateTime          @default(now()) @map("created_at")
 
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -180,6 +199,55 @@ model InvoiceDocument {
   @@unique([invoiceId, invoiceVersion])
   @@index([organizationId, status])
   @@map("invoice_documents")
+  @@schema("core")
+}
+
+model PaymentLink {
+  id             String            @id @default(uuid()) @db.Uuid
+  organizationId String            @map("organization_id") @db.Uuid
+  invoiceId      String            @map("invoice_id") @db.Uuid
+  invoiceVersion Int               @map("invoice_version")
+  provider       String            @default("RAZORPAY")
+  providerLinkId String?           @unique @map("provider_link_id")
+  paymentUrl     String?           @map("payment_url")
+  amount         Int
+  amountPaid     Int               @default(0) @map("amount_paid")
+  currency       String
+  status         PaymentLinkStatus @default(ACTIVE)
+  idempotencyKey String            @unique @map("idempotency_key")
+  expiresAt      DateTime?         @map("expires_at")
+  invoice        Invoice           @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  payments       Payment[]
+  createdAt      DateTime          @default(now()) @map("created_at")
+  updatedAt      DateTime          @updatedAt @map("updated_at")
+
+  @@index([organizationId, status])
+  @@index([invoiceId, invoiceVersion])
+  @@map("payment_links")
+  @@schema("core")
+}
+
+model Payment {
+  id                String        @id @default(uuid()) @db.Uuid
+  organizationId    String        @map("organization_id") @db.Uuid
+  invoiceId         String        @map("invoice_id") @db.Uuid
+  paymentLinkId     String?       @map("payment_link_id") @db.Uuid
+  providerPaymentId String        @unique @map("provider_payment_id")
+  webhookEventId    String        @unique @map("webhook_event_id")
+  amount            Int
+  currency          String
+  status            PaymentStatus
+  method            String?
+  paidAt            DateTime?     @map("paid_at")
+  providerCreatedAt DateTime?     @map("provider_created_at")
+  invoice           Invoice       @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  paymentLink       PaymentLink?  @relation(fields: [paymentLinkId], references: [id], onDelete: SetNull)
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
+
+  @@index([organizationId, status])
+  @@index([invoiceId, createdAt])
+  @@map("payments")
   @@schema("core")
 }
 

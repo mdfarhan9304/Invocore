@@ -5,7 +5,10 @@ import { cn } from "cn";
 
 function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
-    <div data-slot="table-container" className="relative w-full overflow-x-auto">
+    <div
+      data-slot="table-container"
+      className="relative w-full overflow-x-auto rounded-xl border border-[#e5e7eb] bg-white shadow-[0_4px_14px_rgba(23,53,45,0.04)]"
+    >
       <table
         data-slot="table"
         className={cn("w-full caption-bottom text-sm", className)}
@@ -16,7 +19,13 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
 }
 
 function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
-  return <thead data-slot="table-header" className={cn("[&_tr]:border-b", className)} {...props} />;
+  return (
+    <thead
+      data-slot="table-header"
+      className={cn("bg-[#f7f9f7] [&_tr]:border-b [&_tr]:border-[#e5e7eb]", className)}
+      {...props}
+    />
+  );
 }
 
 function TableBody({ className, ...props }: React.ComponentProps<"tbody">) {
@@ -44,7 +53,7 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
     <tr
       data-slot="table-row"
       className={cn(
-        "border-b transition-colors hover:bg-muted/50 has-aria-expanded:bg-muted/50 data-[state=selected]:bg-muted",
+        "border-b border-[#edf0ee] transition-colors hover:bg-[#f7faf8] has-aria-expanded:bg-[#f7faf8] data-[state=selected]:bg-[#f1f7f3]",
         className
       )}
       {...props}
@@ -57,7 +66,7 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
     <th
       data-slot="table-head"
       className={cn(
-        "h-10 px-2 text-left align-middle font-medium whitespace-nowrap text-foreground [&:has([role=checkbox])]:pr-0",
+        "h-11 px-3 text-left align-middle text-[11px] font-bold tracking-[0.1em] whitespace-nowrap text-[#789087] uppercase [&:has([role=checkbox])]:pr-0",
         className
       )}
       {...props}
@@ -69,7 +78,10 @@ function TableCell({ className, ...props }: React.ComponentProps<"td">) {
   return (
     <td
       data-slot="table-cell"
-      className={cn("p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0", className)}
+      className={cn(
+        "p-3 align-middle whitespace-nowrap text-[#17352d] [&:has([role=checkbox])]:pr-0",
+        className
+      )}
       {...props}
     />
   );

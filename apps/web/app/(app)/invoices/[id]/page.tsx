@@ -1,13 +1,16 @@
 "use client";
 
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import {
   ArrowLeftIcon,
   CheckCircleIcon,
   DownloadIcon,
   EditIcon,
+  ExternalLinkIcon,
+  LinkIcon,
   SendIcon,
   XCircleIcon
 } from "lucide-react";
@@ -18,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import { FormAlert } from "@/components/ui/field";
 import { ApiError } from "@/lib/api/client";
 import { invoicesApi } from "@/lib/api/invoices";
-import type { Invoice } from "@/lib/api/types";
+import type { Invoice, PaymentLink } from "@/lib/api/types";
 import { formatCurrency, formatDate } from "@/lib/format";
 
 export default function InvoiceDetailPage() {
@@ -26,30 +29,23 @@ export default function InvoiceDetailPage() {
   const router = useRouter();
   const invoiceId = params.id as string;
 
-  const [invoice, setInvoice] = useState<Invoice | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const invoiceQuery = useQuery({
+    queryKey: ["invoice", invoiceId],
+    queryFn: () => invoicesApi.get(invoiceId)
+  });
+  const invoice = invoiceQuery.data?.invoice ?? null;
+  const loading = invoiceQuery.isPending;
+  const error = invoiceQuery.error
+    ? invoiceQuery.error instanceof ApiError
+      ? invoiceQuery.error.message
+      : "Failed to load invoice."
+    : null;
   const [actionError, setActionError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
   const [acting, setActing] = useState(false);
   const [downloading, setDownloading] = useState(false);
-
-  const load = useCallback(() => {
-    setLoading(true);
-    setError(null);
-    invoicesApi
-      .get(invoiceId)
-      .then((result) => {
-        setInvoice(result.invoice);
-        setEditing(false);
-      })
-      .catch((loadError) => {
-        setError(loadError instanceof ApiError ? loadError.message : "Failed to load invoice.");
-      })
-      .finally(() => setLoading(false));
-  }, [invoiceId]);
-
-  useEffect(load, [load]);
+  const [paymentLink, setPaymentLink] = useState<PaymentLink | null>(null);
 
   async function doAction(
     action: "issue" | "send" | "cancel",
@@ -60,7 +56,8 @@ export default function InvoiceDetailPage() {
     setActionError(null);
     try {
       const result = await handler(invoiceId, invoice.version);
-      setInvoice(result.invoice);
+      queryClient.setQueryData(["invoice", invoiceId], result);
+      await queryClient.invalidateQueries({ queryKey: ["invoices"] });
     } catch (actionErr) {
       setActionError(
         actionErr instanceof ApiError ? actionErr.message : `Failed to ${action} invoice.`
@@ -77,6 +74,7 @@ export default function InvoiceDetailPage() {
     setActionError(null);
     try {
       await invoicesApi.remove(invoiceId);
+      await queryClient.invalidateQueries({ queryKey: ["invoices"] });
       router.push("/invoices");
     } catch (deleteErr) {
       setActionError(
@@ -96,6 +94,22 @@ export default function InvoiceDetailPage() {
       setActionError(dlError instanceof Error ? dlError.message : "Failed to download PDF.");
     } finally {
       setDownloading(false);
+    }
+  }
+
+  async function handleCreatePaymentLink() {
+    if (acting) return;
+    setActing(true);
+    setActionError(null);
+    try {
+      const result = await invoicesApi.createPaymentLink(invoiceId);
+      setPaymentLink(result.paymentLink);
+    } catch (paymentError) {
+      setActionError(
+        paymentError instanceof ApiError ? paymentError.message : "Failed to create payment link."
+      );
+    } finally {
+      setActing(false);
     }
   }
 
@@ -132,6 +146,9 @@ export default function InvoiceDetailPage() {
   const isDraft = invoice.status === "DRAFT";
   const isIssued = invoice.status === "ISSUED";
   const canCancel = ["DRAFT", "ISSUED", "SENT"].includes(invoice.status);
+  const canCollectPayment = ["ISSUED", "SENT", "PARTIALLY_PAID", "OVERDUE"].includes(
+    invoice.status
+  );
 
   return (
     <div className="space-y-6">
@@ -168,6 +185,12 @@ export default function InvoiceDetailPage() {
               <SendIcon className="h-4 w-4" /> Mark as Sent
             </Button>
           )}
+          {canCollectPayment && (
+            <Button size="sm" disabled={acting} onClick={handleCreatePaymentLink}>
+              <LinkIcon className="h-4 w-4" />{" "}
+              {paymentLink ? "Payment link ready" : "Collect payment"}
+            </Button>
+          )}
           {canCancel && !isDraft && (
             <Button
               variant="destructive"
@@ -185,6 +208,34 @@ export default function InvoiceDetailPage() {
       </div>
 
       {actionError && <FormAlert>{actionError}</FormAlert>}
+
+      {paymentLink && (
+        <div className="flex flex-col gap-3 rounded-md border border-emerald-200 bg-emerald-50/60 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-emerald-900">Payment link ready</p>
+            <p className="mt-1 text-sm text-emerald-800">
+              Share this secure Razorpay link with {invoice.clientName}. Partial payments are
+              enabled.
+            </p>
+          </div>
+          <div className="flex shrink-0 gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={async () => {
+                await navigator.clipboard.writeText(paymentLink.url);
+              }}
+            >
+              <LinkIcon className="h-4 w-4" /> Copy link
+            </Button>
+            <Button asChild size="sm">
+              <a href={paymentLink.url} target="_blank" rel="noreferrer">
+                <ExternalLinkIcon className="h-4 w-4" /> Open
+              </a>
+            </Button>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <InfoCard label="Client" value={invoice.clientName} />

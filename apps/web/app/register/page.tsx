@@ -23,7 +23,7 @@ export default function RegisterPage() {
 
   useEffect(() => {
     if (!isInitializing && isAuthenticated) {
-      router.replace("/clients");
+      router.replace("/dashboard");
     }
   }, [isInitializing, isAuthenticated, router]);
 
@@ -39,7 +39,7 @@ export default function RegisterPage() {
         password,
         organizationName: organizationName.trim() ? organizationName.trim() : undefined
       });
-      router.replace("/clients");
+      router.replace("/dashboard");
     } catch (submitError) {
       setError(
         submitError instanceof ApiError
@@ -53,61 +53,77 @@ export default function RegisterPage() {
 
   return (
     <AuthCard
-      title="Create your account"
-      subtitle="Set up your organization to start managing clients and invoices."
+      title="Start your workspace"
+      subtitle="Set up your organization to manage clients and invoices."
+      imageSrc="/images/invocore-auth-register.png"
+      imageAlt="Sunrise over green hills with a small cottage and a path beginning in the grass"
+      imageEyebrow="Begin with Invocore"
+      imageCaption="A quieter place to get paid."
       footer={
         <span>
           Already have an account?{" "}
-          <Link href="/login" className="font-medium text-blue-600 hover:text-blue-700">
+          <Link href="/login" className="font-medium text-[#3c7560] hover:text-[#17352d]">
             Sign in
           </Link>
         </span>
       }
     >
-      <form className="space-y-4" onSubmit={handleSubmit} noValidate>
+      <form className="space-y-5" onSubmit={handleSubmit} noValidate>
         {error ? <FormAlert>{error}</FormAlert> : null}
-        <Field label="Your name" htmlFor="name" required>
+        <Field htmlFor="name" required>
           <Input
             id="name"
+            aria-label="Your name"
+            placeholder="Your full name"
             autoComplete="name"
             value={name}
             onChange={(event) => setName(event.target.value)}
             required
+            className="h-11"
           />
         </Field>
-        <Field
-          label="Organization name"
-          htmlFor="organizationName"
-          hint="Optional — defaults to your name."
-        >
+        <Field htmlFor="organizationName" hint="Optional — defaults to your name.">
           <Input
             id="organizationName"
+            aria-label="Organization name"
+            placeholder="Organization name (optional)"
             value={organizationName}
             onChange={(event) => setOrganizationName(event.target.value)}
+            className="h-11"
           />
         </Field>
-        <Field label="Email" htmlFor="email" required>
+        <Field htmlFor="email" required>
           <Input
             id="email"
+            aria-label="Email"
+            placeholder="you@example.com"
             type="email"
             autoComplete="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             required
+            className="h-11"
           />
         </Field>
-        <Field label="Password" htmlFor="password" required hint="At least 8 characters.">
+        <Field htmlFor="password" required hint="At least 8 characters.">
           <Input
             id="password"
+            aria-label="Password"
+            placeholder="At least 8 characters"
             type="password"
             autoComplete="new-password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             minLength={8}
             required
+            className="h-11"
           />
         </Field>
-        <Button type="submit" className="w-full" disabled={submitting}>
+        <Button
+          type="submit"
+          className="hero-cta button-lift mt-2 h-11 w-full rounded-full text-[15px] font-semibold"
+          disabled={submitting}
+        >
           {submitting ? "Creating account…" : "Create account"}
         </Button>
       </form>

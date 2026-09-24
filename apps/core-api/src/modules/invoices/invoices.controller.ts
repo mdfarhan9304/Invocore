@@ -9,6 +9,7 @@ import { Router as createRouter } from "express";
 import { asyncController } from "../../common/http/async-controller.js";
 import { getTenantContext } from "../../common/http/context.js";
 import { createPermissionGuard } from "../memberships/role.guard.js";
+import { subscribeToInvoicePdfEvents } from "./invoice-pdf.events.js";
 import type { InvoicesService } from "./invoices.service.js";
 import {
   parseCreateInvoiceRequest,
@@ -34,7 +35,10 @@ function toPublicDocument(document: {
   };
 }
 
-export function createInvoicesController(invoicesService: InvoicesService): Router {
+export function createInvoicesController(
+  invoicesService: InvoicesService,
+  redisUrl: string
+): Router {
   const router = createRouter();
 
   router.post(
@@ -62,6 +66,91 @@ export function createInvoicesController(invoicesService: InvoicesService): Rout
       });
 
       response.status(200).json(result);
+    })
+  );
+
+  router.get(
+    "/:invoiceId/pdf/events",
+    createPermissionGuard("invoices:read"),
+    asyncController(async (request: Request, response: Response) => {
+      const tenant = getTenantContext(request);
+      const invoiceId = parseInvoiceId(request.params.invoiceId);
+      let currentDocument: Awaited<ReturnType<InvoicesService["getInvoicePdfStatus"]>> = null;
+      let heartbeat: NodeJS.Timeout | undefined;
+      let closed = false;
+      let closeSubscription = async () => {};
+
+      const subscription = await subscribeToInvoicePdfEvents(
+        redisUrl,
+        tenant.organizationId,
+        invoiceId,
+        (event) => {
+          if (event.invoiceVersion !== currentDocument?.invoiceVersion) {
+            return;
+          }
+
+          response.write(`event: invoice-pdf\ndata: ${JSON.stringify(event)}\n\n`);
+
+          if (event.status === "READY" || event.status === "FAILED") {
+            void closeSubscription();
+          }
+        }
+      );
+
+      closeSubscription = async () => {
+        if (closed) {
+          return;
+        }
+
+        closed = true;
+        if (heartbeat) {
+          clearInterval(heartbeat);
+        }
+        await subscription.close();
+        if (!response.writableEnded) {
+          response.end();
+        }
+      };
+
+      try {
+        currentDocument = await invoicesService.getInvoicePdfStatus({
+          invoiceId,
+          organizationId: tenant.organizationId
+        });
+
+        if (!currentDocument) {
+          await closeSubscription();
+          throw new AppError("PDF has not been requested", "PDF_NOT_REQUESTED", 404);
+        }
+
+        response.status(200);
+        response.setHeader("Content-Type", "text/event-stream");
+        response.setHeader("Cache-Control", "no-cache");
+        response.setHeader("Connection", "keep-alive");
+        response.setHeader("X-Accel-Buffering", "no");
+        response.flushHeaders();
+        response.write("retry: 3000\n\n");
+        response.write(
+          `event: invoice-pdf\ndata: ${JSON.stringify(toPublicDocument(currentDocument))}\n\n`
+        );
+
+        if (currentDocument.status === "READY" || currentDocument.status === "FAILED") {
+          await closeSubscription();
+          return;
+        }
+
+        response.on("close", () => {
+          void closeSubscription();
+        });
+        heartbeat = setInterval(() => {
+          if (!closed) {
+            response.write(": keep-alive\n\n");
+          }
+        }, 15000);
+      } catch (error) {
+        await closeSubscription();
+        throw error;
+      }
     })
   );
 

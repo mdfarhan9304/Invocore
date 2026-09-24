@@ -4,6 +4,10 @@ export type Role = (typeof ROLES)[number];
 
 export const INVOICE_PDF_QUEUE = "invoice-pdf";
 
+export function invoicePdfChannel(organizationId: string, invoiceId: string): string {
+  return `invoice-pdf:${organizationId}:${invoiceId}`;
+}
+
 export type InvoicePdfJob = {
   documentId: string;
   invoiceId: string;
@@ -12,6 +16,13 @@ export type InvoicePdfJob = {
 };
 
 export type InvoiceDocumentStatus = "QUEUED" | "PROCESSING" | "READY" | "FAILED";
+
+export type InvoicePdfEvent = {
+  documentId: string;
+  status: InvoiceDocumentStatus;
+  invoiceVersion: number;
+  error: string | null;
+};
 
 export type InvoicePdfStatusResponse = {
   document: {

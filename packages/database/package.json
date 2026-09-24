@@ -7,6 +7,7 @@
     "build": "tsc --noEmit -p tsconfig.json",
     "prisma:format": "prisma format --schema prisma/schema.prisma",
     "prisma:validate": "prisma validate --schema prisma/schema.prisma",
+    "prisma:seed": "tsx prisma/seed.ts",
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {

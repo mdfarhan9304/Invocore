@@ -21,7 +21,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!isInitializing && isAuthenticated) {
-      router.replace("/clients");
+      router.replace("/dashboard");
     }
   }, [isInitializing, isAuthenticated, router]);
 
@@ -32,7 +32,7 @@ export default function LoginPage() {
 
     try {
       await login({ email, password });
-      router.replace("/clients");
+      router.replace("/dashboard");
     } catch (submitError) {
       setError(
         submitError instanceof ApiError
@@ -46,40 +46,54 @@ export default function LoginPage() {
 
   return (
     <AuthCard
-      title="Sign in"
-      subtitle="Access your organization's invoicing workspace."
+      title="Welcome back"
+      subtitle="Sign in to your organization's invoicing workspace."
+      imageSrc="/images/invocore-auth-login.png"
+      imageAlt="Rolling green hills with a path leading toward a distant lighthouse"
+      imageEyebrow="Return to Invocore"
+      imageCaption="Your workspace is waiting."
       footer={
         <span>
           Need an account?{" "}
-          <Link href="/register" className="font-medium text-blue-600 hover:text-blue-700">
+          <Link href="/register" className="font-medium text-[#3c7560] hover:text-[#17352d]">
             Create one
           </Link>
         </span>
       }
     >
-      <form className="space-y-4" onSubmit={handleSubmit} noValidate>
+      <form className="space-y-5" onSubmit={handleSubmit} noValidate>
         {error ? <FormAlert>{error}</FormAlert> : null}
-        <Field label="Email" htmlFor="email" required>
+        <Field htmlFor="email" required>
           <Input
             id="email"
+            aria-label="Email"
+            placeholder="you@example.com"
             type="email"
             autoComplete="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             required
+            className="h-11"
           />
         </Field>
-        <Field label="Password" htmlFor="password" required>
+        <Field htmlFor="password" required>
           <Input
             id="password"
+            aria-label="Password"
+            placeholder="Enter your password"
             type="password"
             autoComplete="current-password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             required
+            className="h-11"
           />
         </Field>
-        <Button type="submit" className="w-full" disabled={submitting}>
+        <Button
+          type="submit"
+          className="hero-cta button-lift mt-2 h-11 w-full rounded-full text-[15px] font-semibold"
+          disabled={submitting}
+        >
           {submitting ? "Signing in…" : "Sign in"}
         </Button>
       </form>

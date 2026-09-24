@@ -1,3 +1,5 @@
+import { create } from "zustand";
+
 import type { AuthUser } from "@/lib/api/types";
 
 export type Session = {
@@ -9,56 +11,64 @@ export type Session = {
 
 const STORAGE_KEY = "invocore.session";
 
-let current: Session | null = null;
-const listeners = new Set<() => void>();
+type SessionState = {
+  session: Session | null;
+  setSessionState: (session: Session | null) => void;
+  updateSessionTokensState: (accessToken: string, refreshToken: string) => void;
+  setActiveOrganizationIdState: (organizationId: string) => void;
+};
 
-function emit(): void {
-  for (const listener of listeners) {
-    listener();
-  }
-}
+export const useSessionStore = create<SessionState>((set) => ({
+  session: null,
+  setSessionState: (session) => set({ session }),
+  updateSessionTokensState: (accessToken, refreshToken) =>
+    set((state) =>
+      state.session ? { session: { ...state.session, accessToken, refreshToken } } : state
+    ),
+  setActiveOrganizationIdState: (organizationId) =>
+    set((state) =>
+      state.session
+        ? { session: { ...state.session, activeOrganizationId: organizationId } }
+        : state
+    )
+}));
 
-function persist(): void {
+function persistSession(session: Session | null): void {
   if (typeof window === "undefined") {
     return;
   }
 
-  if (current) {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(current));
+  if (session) {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
   } else {
     window.localStorage.removeItem(STORAGE_KEY);
   }
 }
 
-/**
- * Reads the persisted session from localStorage into memory and notifies
- * subscribers. Call once on the client after mount.
- */
 export function hydrateSession(): Session | null {
   if (typeof window === "undefined") {
     return null;
   }
 
   const raw = window.localStorage.getItem(STORAGE_KEY);
-  try {
-    current = raw ? (JSON.parse(raw) as Session) : null;
-  } catch {
-    current = null;
-  }
+  const session = (() => {
+    try {
+      return raw ? (JSON.parse(raw) as Session) : null;
+    } catch {
+      return null;
+    }
+  })();
 
-  emit();
-  return current;
+  useSessionStore.getState().setSessionState(session);
+  return session;
 }
 
 export function subscribeToSession(listener: () => void): () => void {
-  listeners.add(listener);
-  return () => {
-    listeners.delete(listener);
-  };
+  return useSessionStore.subscribe(listener);
 }
 
 export function getSessionSnapshot(): Session | null {
-  return current;
+  return useSessionStore.getState().session;
 }
 
 export function getServerSessionSnapshot(): Session | null {
@@ -66,27 +76,27 @@ export function getServerSessionSnapshot(): Session | null {
 }
 
 export function setSession(next: Session | null): void {
-  current = next;
-  persist();
-  emit();
+  useSessionStore.getState().setSessionState(next);
+  persistSession(next);
 }
 
 export function updateSessionTokens(accessToken: string, refreshToken: string): void {
+  const current = getSessionSnapshot();
   if (!current) {
     return;
   }
 
-  current = { ...current, accessToken, refreshToken };
-  persist();
-  emit();
+  const next = { ...current, accessToken, refreshToken };
+  useSessionStore.getState().updateSessionTokensState(accessToken, refreshToken);
+  persistSession(next);
 }
 
 export function setActiveOrganizationId(organizationId: string): void {
+  const current = getSessionSnapshot();
   if (!current || current.activeOrganizationId === organizationId) {
     return;
   }
 
-  current = { ...current, activeOrganizationId: organizationId };
-  persist();
-  emit();
+  useSessionStore.getState().setActiveOrganizationIdState(organizationId);
+  persistSession({ ...current, activeOrganizationId: organizationId });
 }
