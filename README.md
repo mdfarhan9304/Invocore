@@ -22,15 +22,15 @@ Invocore is invoicing software for freelancers, agencies, and small businesses.
 **User flow:**
 
 ```mermaid
-flowchart LR
-    A[Add Client] --> B[Add Products/Services]
-    B --> C[Create Invoice]
-    C --> D[Add Line Items]
-    D --> E[Issue Invoice]
-    E --> F[Send to Client]
-    F --> G{Paid?}
-    G -->|Yes| H[Mark Paid]
-    G -->|No| I[Mark Overdue]
+graph LR
+    A["Add Client"] --> B["Add Products/Services"]
+    B --> C["Create Invoice"]
+    C --> D["Add Line Items"]
+    D --> E["Issue Invoice"]
+    E --> F["Send to Client"]
+    F --> G{"Paid?"}
+    G -->|Yes| H["Mark Paid"]
+    G -->|No| I["Mark Overdue"]
     I --> G
 ```
 
@@ -153,29 +153,29 @@ sequenceDiagram
     participant Repository
     participant Database
 
-    Client->>AuthGuard: Request + Bearer token
+    Client->>AuthGuard: Request plus Bearer token
     AuthGuard->>AuthGuard: Verify JWT signature
     AuthGuard->>AuthGuard: Check expiration
-    AuthGuard->>TenantMiddleware: Set auth context (userId, email)
+    AuthGuard->>TenantMiddleware: Set auth context
 
-    TenantMiddleware->>TenantMiddleware: Read X-Organization-Id header
+    TenantMiddleware->>TenantMiddleware: Read organization header
     TenantMiddleware->>Database: Find membership
     alt No membership
         TenantMiddleware-->>Client: 403 TENANT_ACCESS_DENIED
     end
-    TenantMiddleware->>PermissionGuard: Set tenant context (orgId, role)
+    TenantMiddleware->>PermissionGuard: Set tenant context
 
-    PermissionGuard->>PermissionGuard: hasPermission(role, requiredPermission)
+    PermissionGuard->>PermissionGuard: Check role permission
     alt Permission denied
         PermissionGuard-->>Client: 403 INSUFFICIENT_PERMISSIONS
     end
     PermissionGuard->>Controller: Request proceeds
 
-    Controller->>Controller: Parse & validate input
+    Controller->>Controller: Parse and validate input
     Controller->>Service: Call business method
     Service->>Service: Apply business rules
     Service->>Repository: Database operation
-    Repository->>Database: Query with orgId scope
+    Repository->>Database: Query with org scope
     Database-->>Repository: Result
     Repository-->>Service: Domain record
     Service-->>Controller: DTO
@@ -365,19 +365,19 @@ sequenceDiagram
     participant AuthService
     participant Database
 
-    Client->>AuthController: POST /auth/register {email, password, name}
-    AuthController->>AuthService: register(input)
+    Client->>AuthController: POST auth register
+    AuthController->>AuthService: register input
 
-    AuthService->>AuthService: Hash password (scrypt)
+    AuthService->>AuthService: Hash password
     AuthService->>Database: Begin transaction
     Database->>Database: Create user
     Database->>Database: Create organization
-    Database->>Database: Create membership (OWNER)
+    Database->>Database: Create membership as OWNER
     Database->>Database: Create refresh token
     Database->>AuthService: Commit transaction
 
-    AuthService->>AuthService: Sign access token (JWT)
-    AuthService-->>AuthController: {accessToken, refreshToken, user, organization}
+    AuthService->>AuthService: Sign access token
+    AuthService-->>AuthController: Return tokens user and organization
     AuthController-->>Client: 201 Created
 ```
 
@@ -390,11 +390,11 @@ sequenceDiagram
     participant AuthService
     participant Database
 
-    Client->>AuthController: POST /auth/login {email, password}
-    AuthController->>AuthService: login(input)
+    Client->>AuthController: POST auth login
+    AuthController->>AuthService: login input
 
     AuthService->>Database: Find user by email
-    AuthService->>AuthService: Verify password (scrypt)
+    AuthService->>AuthService: Verify password
     alt Invalid credentials
         AuthService-->>Client: 401 INVALID_CREDENTIALS
     end
@@ -402,7 +402,7 @@ sequenceDiagram
     AuthService->>AuthService: Generate refresh token
     AuthService->>Database: Save refresh token hash
     AuthService->>AuthService: Sign access token
-    AuthService-->>AuthController: {accessToken, refreshToken, user}
+    AuthService-->>AuthController: Return tokens and user
     AuthController-->>Client: 200 OK
 ```
 
@@ -415,8 +415,8 @@ sequenceDiagram
     participant AuthService
     participant Database
 
-    Client->>AuthController: POST /auth/refresh {refreshToken}
-    AuthController->>AuthService: refresh(input)
+    Client->>AuthController: POST auth refresh
+    AuthController->>AuthService: refresh input
 
     AuthService->>AuthService: Hash token
     AuthService->>Database: Find token by hash
@@ -425,8 +425,8 @@ sequenceDiagram
         AuthService-->>Client: 401 INVALID_REFRESH_TOKEN
     end
 
-    alt Token already revoked (replay attack!)
-        AuthService->>Database: Revoke ALL tokens for user
+    alt Token already revoked
+        AuthService->>Database: Revoke all tokens for user
         AuthService-->>Client: 401 INVALID_REFRESH_TOKEN
     end
 
@@ -436,7 +436,7 @@ sequenceDiagram
     Database->>AuthService: Commit
 
     AuthService->>AuthService: Sign new access token
-    AuthService-->>AuthController: {accessToken, refreshToken}
+    AuthService-->>AuthController: Return new tokens
     AuthController-->>Client: 200 OK
 ```
 
@@ -868,33 +868,33 @@ erDiagram
     Organization ||--o{ InvoiceNumberSequence : has
     Client ||--o{ Invoice : receives
     Invoice ||--o{ InvoiceLineItem : contains
-    Product ||--o{ InvoiceLineItem : referenced_by
+    Product ||--o{ InvoiceLineItem : references
 
     User {
-        uuid id PK
-        string email UK
+        string id PK
+        string email
         string password_hash
         string name
-        timestamp created_at
+        datetime created_at
     }
 
     Organization {
-        uuid id PK
+        string id PK
         string name
         string currency
-        timestamp created_at
+        datetime created_at
     }
 
     Membership {
-        uuid id PK
-        uuid organization_id FK
-        uuid user_id FK
-        enum role
+        string id PK
+        string organization_id FK
+        string user_id FK
+        string role
     }
 
     Client {
-        uuid id PK
-        uuid organization_id FK
+        string id PK
+        string organization_id FK
         string name
         string email
         string tax_id
@@ -902,8 +902,8 @@ erDiagram
     }
 
     Product {
-        uuid id PK
-        uuid organization_id FK
+        string id PK
+        string organization_id FK
         string name
         int unit_price
         int tax_rate
@@ -911,11 +911,11 @@ erDiagram
     }
 
     Invoice {
-        uuid id PK
-        uuid organization_id FK
-        uuid client_id FK
-        string invoice_number UK
-        enum status
+        string id PK
+        string organization_id FK
+        string client_id FK
+        string invoice_number
+        string status
         date issue_date
         date due_date
         int total
@@ -923,9 +923,9 @@ erDiagram
     }
 
     InvoiceLineItem {
-        uuid id PK
-        uuid invoice_id FK
-        uuid product_id FK
+        string id PK
+        string invoice_id FK
+        string product_id FK
         string description
         int quantity
         int unit_price
