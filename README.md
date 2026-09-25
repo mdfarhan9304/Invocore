@@ -11,6 +11,7 @@ Invocore is invoicing software for freelancers, agencies, and small businesses.
 **The problem it solves:** You've finished work for a client. Now you need to send a professional invoice, track whether they paid, and keep records for taxes. Spreadsheets get messy. Emailing PDFs loses track of what's paid. Existing tools charge $20+/month for basic features.
 
 **What Invocore does:**
+
 - **Manage clients** — Store client details, addresses, and tax IDs in one place
 - **Build a product catalog** — Define your services with pricing so invoices are consistent
 - **Create and send invoices** — Add line items, set due dates, generate PDF invoices
@@ -56,19 +57,50 @@ stateDiagram-v2
 
 ---
 
+## Product screenshots
+
+Captured from the live Northstar Digital demo workspace.
+
+### Login
+
+![Invocore login](docs/screenshots/invocore-login.png)
+
+### Dashboard
+
+![Invocore dashboard](docs/screenshots/invocore-dashboard.png)
+
+### Invoices
+
+![Invocore invoices](docs/screenshots/invocore-invoices.png)
+
+### Invoice detail
+
+![Invocore invoice detail](docs/screenshots/invocore-invoice-detail.png)
+
+### Clients
+
+![Invocore clients](docs/screenshots/invocore-clients.png)
+
+### Products & services
+
+![Invocore products](docs/screenshots/invocore-products.png)
+
+---
+
 ## Contents
 
-1. [The big picture](#the-big-picture)
-2. [How requests flow through the system](#how-requests-flow-through-the-system)
-3. [Layered architecture](#layered-architecture)
-4. [Authentication flow](#authentication-flow)
-5. [Error handling](#error-handling)
-6. [Tech stack](#tech-stack)
-7. [Repo layout](#repo-layout)
-8. [The problems I actually had to solve](#the-problems-i-actually-had-to-solve)
-9. [A flow, traced end to end](#a-flow-traced-end-to-end)
-10. [Database schema](#database-schema)
-11. [Running it](#running-it)
+1. [Product screenshots](#product-screenshots)
+2. [The big picture](#the-big-picture)
+3. [How requests flow through the system](#how-requests-flow-through-the-system)
+4. [Layered architecture](#layered-architecture)
+5. [Authentication flow](#authentication-flow)
+6. [Error handling](#error-handling)
+7. [Tech stack](#tech-stack)
+8. [Repo layout](#repo-layout)
+9. [The problems I actually had to solve](#the-problems-i-actually-had-to-solve)
+10. [A flow, traced end to end](#a-flow-traced-end-to-end)
+11. [Database schema](#database-schema)
+12. [Running it](#running-it)
 
 ---
 
@@ -121,20 +153,20 @@ sequenceDiagram
     AuthGuard->>AuthGuard: Verify JWT signature
     AuthGuard->>AuthGuard: Check expiration
     AuthGuard->>TenantMiddleware: Set auth context (userId, email)
-    
+
     TenantMiddleware->>TenantMiddleware: Read X-Organization-Id header
     TenantMiddleware->>Database: Find membership
     alt No membership
         TenantMiddleware-->>Client: 403 TENANT_ACCESS_DENIED
     end
     TenantMiddleware->>PermissionGuard: Set tenant context (orgId, role)
-    
+
     PermissionGuard->>PermissionGuard: hasPermission(role, requiredPermission)
     alt Permission denied
         PermissionGuard-->>Client: 403 INSUFFICIENT_PERMISSIONS
     end
     PermissionGuard->>Controller: Request proceeds
-    
+
     Controller->>Controller: Parse & validate input
     Controller->>Service: Call business method
     Service->>Service: Apply business rules
@@ -147,6 +179,7 @@ sequenceDiagram
 ```
 
 **Key points:**
+
 - Auth context and tenant context are **separate concerns** — you can be authenticated but not have access to a specific org
 - Every database query includes `organizationId` from validated context, never from user input
 - Permission checks happen before any business logic runs
@@ -177,7 +210,7 @@ The module is the composition root. It creates dependencies and wires them toget
 // clients.module.ts
 export function createClientsModule(client: PrismaClient = prisma): Router {
   const router = createRouter();
-  
+
   // Create dependencies
   const membershipsRepository = createMembershipsRepository(client);
   const clientsRepository = createClientsRepository(client);
@@ -185,7 +218,7 @@ export function createClientsModule(client: PrismaClient = prisma): Router {
 
   // Apply middleware chain
   router.use(createAuthGuard(), createTenantMiddleware({ membershipsRepository }));
-  
+
   // Mount controller
   router.use(createClientsController(clientsService));
 
@@ -194,6 +227,7 @@ export function createClientsModule(client: PrismaClient = prisma): Router {
 ```
 
 **Why factory functions instead of classes?**
+
 - No `this` binding issues
 - Easier to test (just pass mock dependencies)
 - No decorator magic or reflection
@@ -207,21 +241,22 @@ Controllers do three things: parse input, call the service, shape the response. 
 // clients.controller.ts
 router.post(
   "/",
-  createPermissionGuard("clients:write"),  // Permission check
+  createPermissionGuard("clients:write"), // Permission check
   asyncController(async (request: Request, response: Response) => {
-    const tenant = getTenantContext(request);  // Get validated org context
-    
+    const tenant = getTenantContext(request); // Get validated org context
+
     const client = await clientsService.createClient({
-      data: parseCreateClientRequest(request.body),  // Validate input
+      data: parseCreateClientRequest(request.body), // Validate input
       organizationId: tenant.organizationId
     });
 
-    response.status(201).json({ client });  // Shape response
+    response.status(201).json({ client }); // Shape response
   })
 );
 ```
 
 **What controllers DON'T do:**
+
 - Access the database
 - Contain business rules
 - Know about Prisma or SQL
@@ -242,7 +277,7 @@ export function createClientsService(clientsRepository: ClientsRepository): Clie
         organizationId: input.organizationId
       });
 
-      return toClientDto(record);  // Transform to API shape
+      return toClientDto(record); // Transform to API shape
     },
 
     async getClient(input) {
@@ -250,7 +285,7 @@ export function createClientsService(clientsRepository: ClientsRepository): Clie
         id: input.clientId,
         organizationId: input.organizationId
       });
-      
+
       if (!record) {
         throw new AppError("Client not found", "CLIENT_NOT_FOUND", 404);
       }
@@ -262,6 +297,7 @@ export function createClientsService(clientsRepository: ClientsRepository): Clie
 ```
 
 **What services own:**
+
 - Business validation ("can this invoice be issued?")
 - Domain errors ("client not found")
 - Orchestration (calling multiple repositories)
@@ -280,7 +316,7 @@ export function createClientsRepository(client: CoreDbClient): ClientsRepository
         select: clientSelect,
         where: {
           id: input.id,
-          organizationId: input.organizationId  // Always scoped to tenant
+          organizationId: input.organizationId // Always scoped to tenant
         }
       });
     },
@@ -306,6 +342,7 @@ export function createClientsRepository(client: CoreDbClient): ClientsRepository
 ```
 
 **Key patterns:**
+
 - Always include `organizationId` in WHERE clauses
 - Use explicit `select` to avoid over-fetching
 - Parallel queries with `Promise.all` for list + count
@@ -326,7 +363,7 @@ sequenceDiagram
 
     Client->>AuthController: POST /auth/register {email, password, name}
     AuthController->>AuthService: register(input)
-    
+
     AuthService->>AuthService: Hash password (scrypt)
     AuthService->>Database: Begin transaction
     Database->>Database: Create user
@@ -334,7 +371,7 @@ sequenceDiagram
     Database->>Database: Create membership (OWNER)
     Database->>Database: Create refresh token
     Database->>AuthService: Commit transaction
-    
+
     AuthService->>AuthService: Sign access token (JWT)
     AuthService-->>AuthController: {accessToken, refreshToken, user, organization}
     AuthController-->>Client: 201 Created
@@ -351,13 +388,13 @@ sequenceDiagram
 
     Client->>AuthController: POST /auth/login {email, password}
     AuthController->>AuthService: login(input)
-    
+
     AuthService->>Database: Find user by email
     AuthService->>AuthService: Verify password (scrypt)
     alt Invalid credentials
         AuthService-->>Client: 401 INVALID_CREDENTIALS
     end
-    
+
     AuthService->>AuthService: Generate refresh token
     AuthService->>Database: Save refresh token hash
     AuthService->>AuthService: Sign access token
@@ -376,30 +413,31 @@ sequenceDiagram
 
     Client->>AuthController: POST /auth/refresh {refreshToken}
     AuthController->>AuthService: refresh(input)
-    
+
     AuthService->>AuthService: Hash token
     AuthService->>Database: Find token by hash
-    
+
     alt Token not found or expired
         AuthService-->>Client: 401 INVALID_REFRESH_TOKEN
     end
-    
+
     alt Token already revoked (replay attack!)
         AuthService->>Database: Revoke ALL tokens for user
         AuthService-->>Client: 401 INVALID_REFRESH_TOKEN
     end
-    
+
     AuthService->>Database: Begin transaction
     Database->>Database: Revoke old token
     Database->>Database: Create new refresh token
     Database->>AuthService: Commit
-    
+
     AuthService->>AuthService: Sign new access token
     AuthService-->>AuthController: {accessToken, refreshToken}
     AuthController-->>Client: 200 OK
 ```
 
 **Security properties:**
+
 - Refresh tokens are stored as hashes, never plaintext
 - Every refresh rotates the token (old one becomes invalid)
 - Replaying a revoked token = account compromise → revoke all sessions
@@ -479,32 +517,32 @@ export function sendHttpError(response: Response, error: unknown): void {
 
 ### Error codes by category
 
-| Code | Status | Meaning |
-|------|--------|---------|
-| `UNAUTHORIZED` | 401 | Missing or invalid auth token |
-| `TOKEN_EXPIRED` | 401 | Access token has expired |
-| `INVALID_CREDENTIALS` | 401 | Wrong email/password |
-| `INVALID_REFRESH_TOKEN` | 401 | Refresh token invalid or revoked |
-| `TENANT_ACCESS_DENIED` | 403 | User not a member of this org |
-| `INSUFFICIENT_PERMISSIONS` | 403 | Role doesn't have required permission |
-| `CLIENT_NOT_FOUND` | 404 | Resource doesn't exist |
-| `INVOICE_NOT_FOUND` | 404 | Resource doesn't exist |
-| `EMAIL_ALREADY_REGISTERED` | 409 | Unique constraint violation |
-| `INVALID_STATUS_TRANSITION` | 409 | State machine rejected the action |
-| `VERSION_CONFLICT` | 409 | Optimistic lock failed |
-| `INVOICE_NOT_EDITABLE` | 409 | Can only edit drafts |
+| Code                        | Status | Meaning                               |
+| --------------------------- | ------ | ------------------------------------- |
+| `UNAUTHORIZED`              | 401    | Missing or invalid auth token         |
+| `TOKEN_EXPIRED`             | 401    | Access token has expired              |
+| `INVALID_CREDENTIALS`       | 401    | Wrong email/password                  |
+| `INVALID_REFRESH_TOKEN`     | 401    | Refresh token invalid or revoked      |
+| `TENANT_ACCESS_DENIED`      | 403    | User not a member of this org         |
+| `INSUFFICIENT_PERMISSIONS`  | 403    | Role doesn't have required permission |
+| `CLIENT_NOT_FOUND`          | 404    | Resource doesn't exist                |
+| `INVOICE_NOT_FOUND`         | 404    | Resource doesn't exist                |
+| `EMAIL_ALREADY_REGISTERED`  | 409    | Unique constraint violation           |
+| `INVALID_STATUS_TRANSITION` | 409    | State machine rejected the action     |
+| `VERSION_CONFLICT`          | 409    | Optimistic lock failed                |
+| `INVOICE_NOT_EDITABLE`      | 409    | Can only edit drafts                  |
 
 ---
 
 ## Tech stack
 
-| Layer | What I used |
-|-------|-------------|
-| Frontend | Next.js 16, React 19, Tailwind 4, shadcn/ui |
-| Backend | Express 5, TypeScript 5.9, Node 22 |
-| Database | PostgreSQL with Prisma ORM |
-| Auth | Hand-rolled JWT (HS256), refresh token rotation |
-| Monorepo | pnpm workspaces with `workspace:*` protocol |
+| Layer    | What I used                                     |
+| -------- | ----------------------------------------------- |
+| Frontend | Next.js 16, React 19, Tailwind 4, shadcn/ui     |
+| Backend  | Express 5, TypeScript 5.9, Node 22              |
+| Database | PostgreSQL with Prisma ORM                      |
+| Auth     | Hand-rolled JWT (HS256), refresh token rotation |
+| Monorepo | pnpm workspaces with `workspace:*` protocol     |
 
 ---
 
@@ -564,10 +602,21 @@ Every action in the system is expressed as `resource:action`:
 ```typescript
 // permissions.ts
 export type Permission =
-  | "clients:read" | "clients:write" | "clients:delete"
-  | "products:read" | "products:write" | "products:delete"
-  | "invoices:read" | "invoices:write" | "invoices:delete" | "invoices:approve" | "invoices:send"
-  | "members:read" | "members:invite" | "members:remove" | "members:change-role"
+  | "clients:read"
+  | "clients:write"
+  | "clients:delete"
+  | "products:read"
+  | "products:write"
+  | "products:delete"
+  | "invoices:read"
+  | "invoices:write"
+  | "invoices:delete"
+  | "invoices:approve"
+  | "invoices:send"
+  | "members:read"
+  | "members:invite"
+  | "members:remove"
+  | "members:change-role"
   | "reports:read"
   | "org:settings";
 ```
@@ -580,20 +629,35 @@ Every role maps to a list of permissions. OWNER gets a wildcard that grants ever
 const WILDCARD = "*" as const;
 
 export const ROLE_PERMISSIONS: Record<Role, Permission[] | [Wildcard]> = {
-  OWNER: [WILDCARD],  // Full access, no enumeration needed
+  OWNER: [WILDCARD], // Full access, no enumeration needed
 
   ADMIN: [
-    "clients:read", "clients:write", "clients:delete",
-    "products:read", "products:write", "products:delete",
-    "members:read", "members:invite", "members:remove", "members:change-role",
-    "invoices:read", "invoices:write", "invoices:delete", "invoices:approve", "invoices:send",
-    "reports:read", "org:settings"
+    "clients:read",
+    "clients:write",
+    "clients:delete",
+    "products:read",
+    "products:write",
+    "products:delete",
+    "members:read",
+    "members:invite",
+    "members:remove",
+    "members:change-role",
+    "invoices:read",
+    "invoices:write",
+    "invoices:delete",
+    "invoices:approve",
+    "invoices:send",
+    "reports:read",
+    "org:settings"
   ],
 
   ACCOUNTANT: [
-    "clients:read", "clients:write",
-    "products:read", "products:write",
-    "invoices:read", "invoices:write",
+    "clients:read",
+    "clients:write",
+    "products:read",
+    "products:write",
+    "invoices:read",
+    "invoices:write",
     "reports:read"
   ],
 
@@ -608,7 +672,7 @@ Guards and services call one function. No special-casing:
 ```typescript
 export function hasPermission(role: Role, permission: Permission): boolean {
   const grants = ROLE_PERMISSIONS[role];
-  if (grants[0] === WILDCARD) return true;  // OWNER bypass
+  if (grants[0] === WILDCARD) return true; // OWNER bypass
   return (grants as Permission[]).includes(permission);
 }
 ```
@@ -621,10 +685,14 @@ Controllers wire up permissions declaratively. No permission logic in business c
 // role.guard.ts
 export function createPermissionGuard(permission: Permission): RequestHandler {
   return (request, _response, next) => {
-    const { role } = getTenantContext(request);  // Injected by tenant middleware
+    const { role } = getTenantContext(request); // Injected by tenant middleware
 
     if (!hasPermission(role, permission)) {
-      throw new AppError("You do not have permission to perform this action", "INSUFFICIENT_PERMISSIONS", 403);
+      throw new AppError(
+        "You do not have permission to perform this action",
+        "INSUFFICIENT_PERMISSIONS",
+        403
+      );
     }
     next();
   };
@@ -632,10 +700,17 @@ export function createPermissionGuard(permission: Permission): RequestHandler {
 
 // Usage in controller
 router.post("/", authGuard, tenantMiddleware, createPermissionGuard("clients:write"), createClient);
-router.delete("/:id", authGuard, tenantMiddleware, createPermissionGuard("clients:delete"), deleteClient);
+router.delete(
+  "/:id",
+  authGuard,
+  tenantMiddleware,
+  createPermissionGuard("clients:delete"),
+  deleteClient
+);
 ```
 
 **Why this design:**
+
 - Adding a new role = one entry in `ROLE_PERMISSIONS`
 - Adding a new permission = one string in the union type + one entry per role that needs it
 - No scattered conditionals to update
@@ -672,7 +747,10 @@ The fix: a state machine. Valid transitions are encoded in a table. Invalid tran
 
 ```typescript
 // invoice-transitions.ts
-const TRANSITIONS: Record<InvoiceStatus, Partial<Record<Action, InvoiceStatus | InvoiceStatus[]>>> = {
+const TRANSITIONS: Record<
+  InvoiceStatus,
+  Partial<Record<Action, InvoiceStatus | InvoiceStatus[]>>
+> = {
   DRAFT: { issue: ISSUED, cancel: CANCELLED },
   ISSUED: { markSent: SENT, cancel: CANCELLED },
   SENT: { recordPayment: [PARTIALLY_PAID, PAID], markOverdue: OVERDUE, cancel: CANCELLED },
@@ -698,7 +776,7 @@ The fix: optimistic locking via a `version` column. Every update requires the ex
 const record = await invoicesRepository.updateDraft({
   id: input.invoiceId,
   organizationId: input.organizationId,
-  expectedVersion: input.expectedVersion,  // Must match current version
+  expectedVersion: input.expectedVersion, // Must match current version
   data: updateData
 });
 
@@ -787,7 +865,7 @@ erDiagram
     Client ||--o{ Invoice : receives
     Invoice ||--o{ InvoiceLineItem : contains
     Product ||--o{ InvoiceLineItem : referenced_by
-    
+
     User {
         uuid id PK
         string email UK
@@ -795,21 +873,21 @@ erDiagram
         string name
         timestamp created_at
     }
-    
+
     Organization {
         uuid id PK
         string name
         string currency
         timestamp created_at
     }
-    
+
     Membership {
         uuid id PK
         uuid organization_id FK
         uuid user_id FK
         enum role
     }
-    
+
     Client {
         uuid id PK
         uuid organization_id FK
@@ -818,7 +896,7 @@ erDiagram
         string tax_id
         string address
     }
-    
+
     Product {
         uuid id PK
         uuid organization_id FK
@@ -827,7 +905,7 @@ erDiagram
         int tax_rate
         boolean is_active
     }
-    
+
     Invoice {
         uuid id PK
         uuid organization_id FK
@@ -839,7 +917,7 @@ erDiagram
         int total
         int version
     }
-    
+
     InvoiceLineItem {
         uuid id PK
         uuid invoice_id FK
@@ -853,18 +931,18 @@ erDiagram
 
 ### Tables and purpose
 
-| Table | Purpose | Key indexes |
-|-------|---------|-------------|
-| `users` | Authentication identity | `email` (unique) |
-| `organizations` | Tenant boundary | — |
-| `organization_members` | User ↔ Organization with role | `(org_id, user_id)` unique, `user_id` |
-| `clients` | Billable customers per tenant | `org_id`, `(org_id, name)` |
-| `products` | Catalog items with pricing | `org_id`, `(org_id, name)` |
-| `invoices` | Header with status, dates, totals | `org_id`, `(org_id, status)`, `(org_id, client_id)`, `(org_id, invoice_number)` unique |
-| `invoice_line_items` | Line-level detail | `invoice_id` |
-| `invoice_number_sequences` | Per-org per-year counters | `(org_id, year)` unique |
-| `refresh_tokens` | Rotatable session tokens | `token_hash` unique, `user_id`, `expires_at` |
-| `audit_logs` | Action tracking | `org_id`, `user_id`, `(resource, resource_id)` |
+| Table                      | Purpose                           | Key indexes                                                                            |
+| -------------------------- | --------------------------------- | -------------------------------------------------------------------------------------- |
+| `users`                    | Authentication identity           | `email` (unique)                                                                       |
+| `organizations`            | Tenant boundary                   | —                                                                                      |
+| `organization_members`     | User ↔ Organization with role     | `(org_id, user_id)` unique, `user_id`                                                  |
+| `clients`                  | Billable customers per tenant     | `org_id`, `(org_id, name)`                                                             |
+| `products`                 | Catalog items with pricing        | `org_id`, `(org_id, name)`                                                             |
+| `invoices`                 | Header with status, dates, totals | `org_id`, `(org_id, status)`, `(org_id, client_id)`, `(org_id, invoice_number)` unique |
+| `invoice_line_items`       | Line-level detail                 | `invoice_id`                                                                           |
+| `invoice_number_sequences` | Per-org per-year counters         | `(org_id, year)` unique                                                                |
+| `refresh_tokens`           | Rotatable session tokens          | `token_hash` unique, `user_id`, `expires_at`                                           |
+| `audit_logs`               | Action tracking                   | `org_id`, `user_id`, `(resource, resource_id)`                                         |
 
 ### Indexing strategy
 
@@ -899,6 +977,7 @@ const lineTax = Math.round((lineTotal * taxRate) / 10_000);
 ```
 
 **Why integers?**
+
 - No floating point precision issues ($0.1 + $0.2 ≠ $0.3 in floats)
 - Exact arithmetic for financial calculations
 - Database stores exactly what you put in
