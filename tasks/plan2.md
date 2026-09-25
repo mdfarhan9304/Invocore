@@ -68,15 +68,15 @@ The problem is not merely invoice creation.
 
 The larger problem is **accounts receivable administration**:
 
-* Who owes the business money?
-* How much?
-* When is payment due?
-* Which invoices are overdue?
-* Was a partial payment made?
-* Was the invoice actually delivered?
-* Has the client viewed it?
-* Has a reminder already been sent?
-* Does the business need to follow up manually?
+- Who owes the business money?
+- How much?
+- When is payment due?
+- Which invoices are overdue?
+- Was a partial payment made?
+- Was the invoice actually delivered?
+- Has the client viewed it?
+- Has a reminder already been sent?
+- Does the business need to follow up manually?
 
 Invocore aims to automate this workflow.
 
@@ -90,22 +90,22 @@ Invocore should initially target small service-based businesses rather than atte
 
 Examples:
 
-* Software development agencies
-* Design agencies
-* Marketing agencies
-* Freelancers
-* Consultants
-* IT service providers
-* Small professional-service firms
+- Software development agencies
+- Design agencies
+- Marketing agencies
+- Freelancers
+- Consultants
+- IT service providers
+- Small professional-service firms
 
 Typical characteristics:
 
-* 1–20 employees
-* 10–500 active clients
-* Recurring or project-based billing
-* Multiple invoices per month
-* Existing manual payment follow-up
-* Need for team-based access
+- 1–20 employees
+- 10–500 active clients
+- Recurring or project-based billing
+- Multiple invoices per month
+- Existing manual payment follow-up
+- Need for team-based access
 
 ---
 
@@ -183,20 +183,20 @@ PAID
 
 ## Authentication
 
-* Registration
-* Login
-* Logout
-* Refresh-token rotation
-* Password hashing
-* JWT authentication
-* Organization creation during registration
+- Registration
+- Login
+- Logout
+- Refresh-token rotation
+- Password hashing
+- JWT authentication
+- Organization creation during registration
 
 ## Organizations
 
-* Organization listing
-* Active workspace switching
-* Tenant membership validation
-* Organization-scoped data
+- Organization listing
+- Active workspace switching
+- Tenant membership validation
+- Organization-scoped data
 
 ## RBAC
 
@@ -217,22 +217,22 @@ Route-level permission checks.
 
 Users can:
 
-* Create clients
-* View clients
-* Edit clients
-* Delete clients
-* Search by name/email
-* Paginate client lists
+- Create clients
+- View clients
+- Edit clients
+- Delete clients
+- Search by name/email
+- Paginate client lists
 
 Client data:
 
-* Name
-* Email
-* Phone
-* Tax ID
-* Address
-* Country
-* Notes
+- Name
+- Email
+- Phone
+- Tax ID
+- Address
+- Country
+- Notes
 
 All client records are organization-scoped.
 
@@ -242,21 +242,21 @@ All client records are organization-scoped.
 
 Users can:
 
-* Create products/services
-* Edit products/services
-* Delete products/services
-* Search catalog
-* Reuse catalog items in invoices
-* Add custom invoice line items
+- Create products/services
+- Edit products/services
+- Delete products/services
+- Search catalog
+- Reuse catalog items in invoices
+- Add custom invoice line items
 
 Catalog fields:
 
-* Name
-* Description
-* Unit price
-* Currency
-* Tax rate
-* Active status
+- Name
+- Description
+- Unit price
+- Currency
+- Tax rate
+- Active status
 
 ---
 
@@ -264,23 +264,23 @@ Catalog fields:
 
 Current functionality:
 
-* Create draft invoices
-* Edit draft invoices
-* View invoices
-* Delete drafts
-* Multiple line items
-* Subtotal calculation
-* Tax calculation
-* Total calculation
-* Balance due
-* Issue date
-* Due date
-* Notes
-* Payment terms
-* Search
-* Status filtering
-* Pagination
-* Invoice status badges
+- Create draft invoices
+- Edit draft invoices
+- View invoices
+- Delete drafts
+- Multiple line items
+- Subtotal calculation
+- Tax calculation
+- Total calculation
+- Balance due
+- Issue date
+- Due date
+- Notes
+- Payment terms
+- Search
+- Status filtering
+- Pagination
+- Invoice status badges
 
 ---
 
@@ -404,12 +404,12 @@ Frontend
 
 Requirements:
 
-* Background processing
-* Retry support
-* Persistent document status
-* Failure handling
-* Document storage
-* Client status updates
+- Background processing
+- Retry support
+- Persistent document status
+- Failure handling
+- Document storage
+- Client status updates
 
 ---
 
@@ -419,13 +419,13 @@ This is the next major feature.
 
 Users must be able to record:
 
-* Full payment
-* Partial payment
-* Multiple payments
-* Payment date
-* Payment method
-* Transaction/reference ID
-* Notes
+- Full payment
+- Partial payment
+- Multiple payments
+- Payment date
+- Payment method
+- Transaction/reference ID
+- Notes
 
 Example:
 
@@ -548,12 +548,12 @@ Follow-up
 
 Configuration:
 
-* Enable/disable reminders
-* Days before/after due date
-* Email template
-* Recipient
-* Maximum reminders
-* Stop reminders when paid
+- Enable/disable reminders
+- Days before/after due date
+- Email template
+- Recipient
+- Maximum reminders
+- Stop reminders when paid
 
 The reminder engine should not send duplicate reminders.
 
@@ -621,11 +621,11 @@ Track payment
 
 Supported frequencies:
 
-* Weekly
-* Monthly
-* Quarterly
-* Yearly
-* Custom interval
+- Weekly
+- Monthly
+- Quarterly
+- Yearly
+- Custom interval
 
 ---
 
@@ -635,13 +635,13 @@ Each client should eventually have a secure portal.
 
 Client can:
 
-* View invoices
-* Download invoices
-* Pay invoices
-* View payment history
-* View outstanding balance
-* View receipts
-* Update permitted contact information
+- View invoices
+- Download invoices
+- Pay invoices
+- View payment history
+- View outstanding balance
+- View receipts
+- Update permitted contact information
 
 Example:
 
@@ -674,17 +674,17 @@ invocore.com/invoice/<secure-token>
 
 The page should show:
 
-* Business details
-* Client details
-* Invoice number
-* Line items
-* Taxes
-* Total
-* Amount paid
-* Balance
-* Due date
-* Payment button
-* PDF download
+- Business details
+- Client details
+- Invoice number
+- Line items
+- Taxes
+- Total
+- Amount paid
+- Balance
+- Due date
+- Payment button
+- PDF download
 
 Sensitive organization data must not be exposed through predictable URLs.
 
@@ -714,13 +714,13 @@ Invoices pending       18
 
 ### Future analytics
 
-* Revenue trend
-* Accounts receivable aging
-* Top clients
-* Overdue clients
-* Payment collection rate
-* Average payment time
-* Recurring revenue
+- Revenue trend
+- Accounts receivable aging
+- Top clients
+- Overdue clients
+- Payment collection rate
+- Average payment time
+- Recurring revenue
 
 ---
 
@@ -744,14 +744,14 @@ This is more useful to a business than generic charts.
 
 Complete the existing RBAC system with:
 
-* Invite team members
-* Invitation expiry
-* Resend invitation
-* Accept invitation
-* Change role
-* Remove member
-* View members
-* Permission matrix
+- Invite team members
+- Invitation expiry
+- Resend invitation
+- Accept invitation
+- Change role
+- Remove member
+- View members
+- Permission matrix
 
 Example:
 
@@ -801,13 +801,13 @@ Amount:
 
 For sensitive changes, capture:
 
-* Actor
-* Organization
-* Entity
-* Entity ID
-* Action
-* Timestamp
-* Relevant before/after values
+- Actor
+- Organization
+- Entity
+- Entity ID
+- Action
+- Timestamp
+- Relevant before/after values
 
 ---
 
@@ -827,12 +827,12 @@ S3 / compatible object storage
 
 Production requirements:
 
-* Private buckets
-* Signed URLs
-* No direct public access
-* File metadata
-* Access control
-* Lifecycle policies
+- Private buckets
+- Signed URLs
+- No direct public access
+- File metadata
+- Access control
+- Lifecycle policies
 
 MinIO can be used for local S3-compatible development.
 
@@ -910,10 +910,10 @@ Never trust an organization ID supplied by the client without validating members
 
 Background jobs must be:
 
-* Retryable
-* Idempotent
-* Observable
-* Recoverable
+- Retryable
+- Idempotent
+- Observable
+- Recoverable
 
 Important idempotency cases:
 
@@ -942,20 +942,20 @@ Repeated processing should not create inconsistent documents.
 
 Minimum requirements:
 
-* Password hashing
-* JWT authentication
-* Refresh-token rotation
-* Authorization checks
-* Tenant isolation
-* Input validation
-* Rate limiting
-* Secure HTTP headers
-* Secure cookies where applicable
-* Webhook signature verification
-* Object-storage access control
-* Audit logging
-* No plaintext passwords
-* No sensitive payment credentials stored by Invocore
+- Password hashing
+- JWT authentication
+- Refresh-token rotation
+- Authorization checks
+- Tenant isolation
+- Input validation
+- Rate limiting
+- Secure HTTP headers
+- Secure cookies where applicable
+- Webhook signature verification
+- Object-storage access control
+- Audit logging
+- No plaintext passwords
+- No sensitive payment credentials stored by Invocore
 
 ---
 
@@ -1028,43 +1028,43 @@ These tests provide much more product value than superficial UI tests.
 
 ## Must Have
 
-* Authentication
-* Organizations
-* RBAC
-* Clients
-* Products/services
-* Invoice creation
-* Invoice lifecycle
-* PDF generation
-* Email delivery
-* Payment recording
-* Partial payments
-* Online payment
-* Payment webhook
-* Overdue detection
-* Automated reminders
-* Basic dashboard
-* Audit logs
+- Authentication
+- Organizations
+- RBAC
+- Clients
+- Products/services
+- Invoice creation
+- Invoice lifecycle
+- PDF generation
+- Email delivery
+- Payment recording
+- Partial payments
+- Online payment
+- Payment webhook
+- Overdue detection
+- Automated reminders
+- Basic dashboard
+- Audit logs
 
 ## Should Have
 
-* Recurring invoices
-* Client portal
-* Public invoice page
-* Team invitations
-* S3/MinIO
-* AR aging
+- Recurring invoices
+- Client portal
+- Public invoice page
+- Team invitations
+- S3/MinIO
+- AR aging
 
 ## Later
 
-* Quotes
-* Credit notes
-* Expense tracking
-* Time tracking
-* Advanced analytics
-* Multi-currency enhancements
-* Accounting integrations
-* GST-specific advanced workflows
+- Quotes
+- Credit notes
+- Expense tracking
+- Time tracking
+- Advanced analytics
+- Multi-currency enhancements
+- Accounting integrations
+- GST-specific advanced workflows
 
 ---
 
@@ -1072,15 +1072,15 @@ These tests provide much more product value than superficial UI tests.
 
 Do not build:
 
-* Full accounting software
-* Payroll
-* Inventory management
-* CRM
-* Project management
-* HR
-* Banking
-* AI chatbot
-* Generic business ERP
+- Full accounting software
+- Payroll
+- Inventory management
+- CRM
+- Project management
+- HR
+- Banking
+- AI chatbot
+- Generic business ERP
 
 These features would expand the product without strengthening the initial core proposition.
 
@@ -1094,26 +1094,26 @@ Potential structure:
 
 ### Free
 
-* Limited invoices
-* Basic client management
-* Basic PDF generation
+- Limited invoices
+- Basic client management
+- Basic PDF generation
 
 ### Pro
 
-* Unlimited invoices
-* Automated reminders
-* Payment collection
-* Recurring invoices
-* Client portal
-* Advanced reports
+- Unlimited invoices
+- Automated reminders
+- Payment collection
+- Recurring invoices
+- Client portal
+- Advanced reports
 
 ### Team
 
-* Multiple users
-* Advanced permissions
-* Audit logs
-* Advanced workflows
-* Higher limits
+- Multiple users
+- Advanced permissions
+- Audit logs
+- Advanced workflows
+- Higher limits
 
 The exact prices should be validated against the target customer's willingness to pay and the cost of payment/email/storage infrastructure.
 
@@ -1141,25 +1141,25 @@ First invoice sent
 
 ### Payment metrics
 
-* % invoices paid
-* Average days to payment
-* Overdue amount
-* Payment collection rate
-* Reminder → payment conversion
+- % invoices paid
+- Average days to payment
+- Overdue amount
+- Payment collection rate
+- Reminder → payment conversion
 
 ### Retention
 
-* Organizations active after 30 days
-* Monthly invoices per organization
-* Monthly payment volume
-* Recurring invoice usage
+- Organizations active after 30 days
+- Monthly invoices per organization
+- Monthly payment volume
+- Recurring invoice usage
 
 ### Automation
 
-* % invoices automatically delivered
-* % overdue invoices automatically followed up
-* % payments automatically reconciled
-* Manual actions per invoice
+- % invoices automatically delivered
+- % overdue invoices automatically followed up
+- % payments automatically reconciled
+- Manual actions per invoice
 
 ---
 
