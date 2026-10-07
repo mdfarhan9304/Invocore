@@ -17,6 +17,7 @@ import {
   UsersRound
 } from "lucide-react";
 
+import { Logo } from "@/components/brand/logo";
 import { Reveal } from "@/components/marketing/reveal";
 import { Button } from "@/components/ui/button";
 
@@ -137,14 +138,7 @@ export default function HomePage() {
         />
         <div className="mx-auto flex w-full max-w-7xl flex-col px-5 py-5 sm:px-8 lg:px-10">
           <header className="flex items-center justify-between">
-            <Link href="/" className="group flex items-center gap-3" aria-label="Invocore home">
-              <span className="grid size-9 place-items-center rounded-lg border border-emerald-900/10 bg-white/75 text-sm font-semibold text-emerald-950 shadow-sm backdrop-blur transition-transform duration-300 group-hover:-rotate-3">
-                I
-              </span>
-              <span className="text-base font-semibold tracking-[0.18em] text-emerald-950 uppercase">
-                Invocore
-              </span>
-            </Link>
+            <Logo href="/" className="text-emerald-950" />
 
             <nav className="flex items-center gap-2" aria-label="Landing page">
               <Button
@@ -176,7 +170,7 @@ export default function HomePage() {
                 Calm invoice operations for growing teams
               </div>
 
-              <h1 className="text-6xl font-semibold leading-[0.9] tracking-normal text-balance text-emerald-950 sm:text-7xl lg:text-8xl">
+              <h1 className="text-6xl leading-[0.9] tracking-[-0.02em] text-balance text-emerald-950 sm:text-7xl lg:text-8xl">
                 Invocore
               </h1>
 
@@ -400,7 +394,7 @@ export default function HomePage() {
                     <p className="mt-8 text-[10px] font-bold tracking-[0.18em] text-[#3c7560] uppercase">
                       {feature.eyebrow}
                     </p>
-                    <h3 className="mt-3 text-xl font-semibold tracking-[-0.03em] text-[#17352d]">
+                    <h3 className="mt-3 text-xl tracking-[-0.01em] text-[#17352d]">
                       {feature.title}
                     </h3>
                     <p className="mt-3 min-h-14 text-sm leading-6 text-[#789087]">{feature.copy}</p>
@@ -423,7 +417,7 @@ export default function HomePage() {
               <p className="section-kicker text-[#9cc6a8]">Serious about the details</p>
             </Reveal>
             <Reveal delay={0.06} className="mt-5">
-              <h2 className="max-w-md text-4xl leading-[0.98] tracking-[-0.055em] sm:text-5xl">
+              <h2 className="max-w-md text-4xl leading-[1.02] tracking-[-0.02em] sm:text-5xl">
                 A little more confidence in every number.
               </h2>
             </Reveal>
@@ -465,14 +459,30 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="bg-[#e2efe5]">
-        <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-8 px-5 py-20 sm:px-8 lg:flex-row lg:items-center lg:px-10 lg:py-24">
+      <section className="relative isolate overflow-hidden bg-white">
+        <Image
+          src="/images/invocore-footer-mountains.png"
+          alt=""
+          fill
+          sizes="100vw"
+          className="absolute inset-0 -z-30 object-cover object-center"
+        />
+        <div
+          className="absolute inset-0 -z-20 bg-[linear-gradient(180deg,#ffffff_0%,rgba(255,255,255,0.97)_30%,rgba(247,245,239,0.72)_48%,rgba(23,53,45,0.68)_78%,rgba(23,53,45,0.78)_100%)]"
+          aria-hidden="true"
+        />
+        <div
+          className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_75%_45%,rgba(184,229,196,0.16),transparent_35%)]"
+          aria-hidden="true"
+        />
+
+        <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-8 px-5 py-24 sm:px-8 lg:flex-row lg:items-center lg:px-10 lg:py-32">
           <div>
             <Reveal>
               <p className="section-kicker">Ready when you are</p>
             </Reveal>
             <Reveal delay={0.06} className="mt-4">
-              <h2 className="max-w-2xl text-4xl leading-[0.98] tracking-[-0.055em] text-[#17352d] sm:text-5xl">
+              <h2 className="max-w-2xl text-4xl leading-[1.02] tracking-[-0.02em] text-[#17352d] sm:text-5xl">
                 Make space for the work that matters.
               </h2>
             </Reveal>
@@ -481,7 +491,7 @@ export default function HomePage() {
             <Button
               asChild
               size="lg"
-              className="button-lift h-12 bg-[#17352d] px-5 text-[#f7f5ef] hover:bg-[#2c5748]"
+              className="button-lift h-12 bg-[#17352d] px-5 text-[#f7f5ef] hover:bg-[#2c5748] hover:text-white"
             >
               <Link href="/register">
                 Start with Invocore{" "}
@@ -493,21 +503,21 @@ export default function HomePage() {
             </Button>
           </Reveal>
         </div>
-      </section>
 
-      <footer className="bg-[#f7f5ef]">
-        <div className="mx-auto flex max-w-7xl flex-col gap-5 px-5 py-8 text-xs text-[#789087] sm:px-8 md:flex-row md:items-center md:justify-between lg:px-10">
-          <p>© 2026 Invocore. A calmer way to get paid.</p>
-          <div className="flex gap-5">
-            <Link href="/login" className="transition-colors hover:text-[#17352d]">
-              Log in
-            </Link>
-            <Link href="/register" className="transition-colors hover:text-[#17352d]">
-              Create workspace
-            </Link>
+        <footer className="border-t border-white/15">
+          <div className="mx-auto flex max-w-7xl flex-col gap-5 px-5 py-8 text-xs text-[#d6e3dc] sm:px-8 md:flex-row md:items-center md:justify-between lg:px-10">
+            <p>© 2026 Invocore. A calmer way to get paid.</p>
+            <div className="flex gap-5">
+              <Link href="/login" className="transition-colors hover:text-white">
+                Log in
+              </Link>
+              <Link href="/register" className="transition-colors hover:text-white">
+                Create workspace
+              </Link>
+            </div>
           </div>
-        </div>
-      </footer>
+        </footer>
+      </section>
     </main>
   );
 }

@@ -67,7 +67,6 @@ body {
 
 @theme inline {
   --font-heading: var(--font-sans);
-  --font-sans: var(--font-sans);
   --font-serif: var(--font-display), "Iowan Old Style", "Baskerville", Georgia, serif;
   --font-overused-grotesk: "Overused Grotesk", var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -153,6 +152,14 @@ body {
   }
   html {
     @apply font-sans;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-serif;
   }
 }
 
@@ -313,10 +320,11 @@ body {
 
 .section-title {
   color: #17352d;
+  font-family: var(--font-display), "Iowan Old Style", "Baskerville", Georgia, serif;
   font-size: clamp(2.5rem, 5vw, 4rem);
-  font-weight: 600;
-  letter-spacing: -0.055em;
-  line-height: 0.98;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1;
 }
 
 .label-detail {

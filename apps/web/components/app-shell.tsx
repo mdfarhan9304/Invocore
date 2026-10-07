@@ -17,6 +17,7 @@ import {
   type LucideIcon
 } from "lucide-react";
 
+import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/auth-context";
 import { cn } from "@/lib/utils";
@@ -69,23 +70,15 @@ function Sidebar({
       aria-label="Primary"
     >
       <div className="flex items-center justify-between px-1">
-        <Link
-          href="/dashboard"
-          className="group flex items-center gap-3"
-          aria-label="Invocore overview"
-        >
-          <span className="grid size-8 place-items-center rounded-lg bg-[#17352d] text-sm font-semibold text-white shadow-sm transition-transform duration-200 group-hover:-rotate-3">
-            i
-          </span>
-          <span
-            className={cn(
-              "text-base font-semibold tracking-[0.18em] text-[#17352d] uppercase",
-              collapsed && "lg:hidden"
-            )}
-          >
-            Invocore
-          </span>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Logo href="/dashboard" size="sm" className={cn(collapsed && "lg:hidden")} />
+          <Logo
+            href="/dashboard"
+            size="sm"
+            variant="mark"
+            className={cn(!collapsed && "hidden lg:inline-flex")}
+          />
+        </div>
         <Button
           variant="ghost"
           size="icon-sm"

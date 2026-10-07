@@ -6,6 +6,7 @@ import { PrismaClient } from "../generated/client/client.js";
 export type {
   AuditLog,
   Client,
+  Invitation,
   Invoice,
   InvoiceDocument,
   InvoiceLineItem,
@@ -21,6 +22,7 @@ export type {
 } from "../generated/client/client.js";
 export {
   InvoiceDocumentStatus,
+  InvitationStatus,
   InvoiceStatus,
   PaymentLinkStatus,
   PaymentStatus,

@@ -1,14 +1,17 @@
 import Link from "next/link";
 import { CheckCircleIcon } from "lucide-react";
 
+import { Logo } from "@/components/brand/logo";
+
 export default function PaymentCompletePage() {
   return (
-    <main className="flex min-h-screen items-center justify-center px-6 py-16">
+    <main className="flex min-h-screen flex-col items-center justify-center gap-8 px-6 py-16">
+      <Logo href="/" />
       <div className="w-full max-w-md rounded-2xl border bg-card p-8 text-center shadow-sm">
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
           <CheckCircleIcon className="h-7 w-7" />
         </div>
-        <h1 className="mt-5 text-2xl font-semibold">Payment submitted</h1>
+        <h1 className="mt-5 text-2xl">Payment submitted</h1>
         <p className="mt-3 text-sm leading-6 text-muted-foreground">
           We are verifying the payment with our payment provider. The invoice will be marked paid
           after verification.

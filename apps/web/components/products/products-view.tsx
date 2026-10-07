@@ -139,7 +139,7 @@ export function ProductsView() {
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-xl font-semibold">Products &amp; Services</h1>
+          <h1 className="text-xl">Products &amp; Services</h1>
           <p className="text-sm text-muted-foreground">Manage the items you add to invoices.</p>
         </div>
         <Button onClick={openCreate}>

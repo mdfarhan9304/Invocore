@@ -7,6 +7,7 @@ export type CoreDbClient = Pick<
   | "invoiceDocument"
   | "invoiceLineItem"
   | "invoiceNumberSequence"
+  | "invitation"
   | "membership"
   | "organization"
   | "payment"

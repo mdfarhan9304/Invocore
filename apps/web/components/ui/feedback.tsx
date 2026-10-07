@@ -27,7 +27,7 @@ export function EmptyState({ icon, title, description, action }: EmptyStateProps
   return (
     <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[#cfd8d2] bg-white px-6 py-14 text-center shadow-[0_4px_14px_rgba(23,53,45,0.04)]">
       {icon ? <div className="mb-3 text-muted-foreground">{icon}</div> : null}
-      <h3 className="text-sm font-semibold">{title}</h3>
+      <h3 className="font-sans text-sm font-semibold">{title}</h3>
       {description ? (
         <p className="mt-1 max-w-sm text-sm text-muted-foreground">{description}</p>
       ) : null}

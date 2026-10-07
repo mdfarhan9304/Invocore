@@ -14,8 +14,22 @@ const instrumentSerif = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.APP_URL ?? "http://localhost:3000"),
   title: "Invocore",
-  description: "A calmer way to manage clients, invoices, and getting paid."
+  description: "A calmer way to manage clients, invoices, and getting paid.",
+  applicationName: "Invocore",
+  appleWebApp: { capable: true, title: "Invocore", statusBarStyle: "black-translucent" },
+  openGraph: {
+    type: "website",
+    siteName: "Invocore",
+    title: "Invocore",
+    description: "A calmer way to manage clients, invoices, and getting paid."
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Invocore",
+    description: "A calmer way to manage clients, invoices, and getting paid."
+  }
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

@@ -9,6 +9,7 @@ import { createAuthModule } from "./modules/auth/auth.module.js";
 import { createClientsModule } from "./modules/clients/clients.module.js";
 import { createDashboardModule } from "./modules/dashboard/dashboard.module.js";
 import { createInvoicesModule } from "./modules/invoices/invoices.module.js";
+import { createInvitationsModule } from "./modules/invitations/invitations.module.js";
 import { createOrganizationsModule } from "./modules/organizations/organizations.module.js";
 import { createPaymentsModule } from "./modules/payments/payments.module.js";
 import { createProductsModule } from "./modules/products/products.module.js";
@@ -34,6 +35,7 @@ export function createApp() {
   app.use("/auth", createAuthModule());
   app.use("/me", createSessionModule());
   app.use("/organizations", createOrganizationsModule());
+  app.use("/invitations", createInvitationsModule());
   app.use("/dashboard", createDashboardModule());
   app.use("/clients", createClientsModule());
   app.use("/products", createProductsModule());

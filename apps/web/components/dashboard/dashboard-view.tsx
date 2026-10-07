@@ -41,7 +41,7 @@ export function DashboardView() {
       <Reveal className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
         <div>
           <p className="text-xs font-semibold text-[#3c7560]">Workspace snapshot</p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-[#17352d]">
+          <h1 className="mt-2 text-2xl tracking-[-0.015em] text-[#17352d]">
             Good morning, here is your overview.
           </h1>
           <p className="mt-2 text-sm text-[#789087]">

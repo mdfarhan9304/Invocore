@@ -13,7 +13,7 @@ export default function NewInvoicePage() {
             <ArrowLeftIcon className="h-4 w-4" />
           </Link>
         </Button>
-        <h1 className="text-xl font-semibold">New Invoice</h1>
+        <h1 className="text-xl">New Invoice</h1>
       </div>
       <InvoiceForm />
     </div>

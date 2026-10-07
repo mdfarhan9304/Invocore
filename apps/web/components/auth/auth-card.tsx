@@ -1,6 +1,7 @@
 import Image from "next/image";
-import Link from "next/link";
 import type { ReactNode } from "react";
+
+import { Logo } from "@/components/brand/logo";
 
 type AuthCardProps = {
   title: string;
@@ -46,14 +47,7 @@ export function AuthCard({
         </aside>
 
         <section className="flex flex-col overflow-y-auto rounded-[28px] bg-white px-6 py-7 shadow-[0_18px_50px_rgba(23,53,45,0.06)] sm:rounded-[36px] sm:px-10 sm:py-10 lg:rounded-[42px] lg:px-12">
-          <Link href="/" className="group flex items-center gap-3" aria-label="Invocore home">
-            <span className="grid size-9 place-items-center rounded-lg border border-emerald-900/10 bg-[#f4f8f5] text-sm font-semibold text-emerald-950 shadow-sm transition-transform duration-300 group-hover:-rotate-3">
-              I
-            </span>
-            <span className="text-base font-semibold tracking-[0.18em] text-emerald-950 uppercase">
-              Invocore
-            </span>
-          </Link>
+          <Logo href="/" className="text-emerald-950" />
 
           <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center py-10">
             <h1 className="font-serif text-4xl leading-none text-[#17352d] sm:text-[2.75rem]">

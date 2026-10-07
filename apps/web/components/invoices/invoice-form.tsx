@@ -212,7 +212,7 @@ export function InvoiceForm({ invoice }: InvoiceFormProps) {
       </div>
 
       <div>
-        <h3 className="mb-3 text-sm font-semibold">Line Items</h3>
+        <h3 className="mb-3 font-sans text-sm font-semibold">Line Items</h3>
         <LineItemsEditor
           items={lineItems}
           products={products}

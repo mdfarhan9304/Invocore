@@ -17,16 +17,25 @@ enum Role {
   @@schema("core")
 }
 
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+
+  @@schema("core")
+}
+
 model User {
-  id            String         @id @default(uuid()) @db.Uuid
-  email         String         @unique
-  passwordHash  String         @map("password_hash")
-  name          String
-  memberships   Membership[]
-  refreshTokens RefreshToken[]
-  auditLogs     AuditLog[]
-  createdAt     DateTime       @default(now()) @map("created_at")
-  updatedAt     DateTime       @updatedAt @map("updated_at")
+  id              String         @id @default(uuid()) @db.Uuid
+  email           String         @unique
+  passwordHash    String         @map("password_hash")
+  name            String
+  memberships     Membership[]
+  refreshTokens   RefreshToken[]
+  auditLogs       AuditLog[]
+  sentInvitations Invitation[]   @relation("InvitationCreator")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
 
   @@map("users")
   @@schema("core")
@@ -37,6 +46,7 @@ model Organization {
   name                   String
   currency               String                  @default("USD")
   memberships            Membership[]
+  invitations            Invitation[]
   clients                Client[]
   products               Product[]
   invoices               Invoice[]
@@ -62,6 +72,29 @@ model Membership {
   @@unique([organizationId, userId])
   @@index([userId])
   @@map("organization_members")
+  @@schema("core")
+}
+
+model Invitation {
+  id              String           @id @default(uuid()) @db.Uuid
+  organizationId  String           @map("organization_id") @db.Uuid
+  email           String
+  role            Role
+  tokenHash       String           @unique @map("token_hash")
+  status          InvitationStatus @default(PENDING)
+  expiresAt       DateTime         @map("expires_at")
+  createdByUserId String           @map("created_by_user_id") @db.Uuid
+  acceptedAt      DateTime?        @map("accepted_at")
+  revokedAt       DateTime?        @map("revoked_at")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+  organization    Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy       User             @relation("InvitationCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+
+  @@unique([organizationId, email])
+  @@index([organizationId, status])
+  @@index([expiresAt])
+  @@map("invitations")
   @@schema("core")
 }
 

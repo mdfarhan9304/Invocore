@@ -29,6 +29,11 @@ export type AppConfig = {
   };
   corsOrigins: string[];
   databaseUrl: string;
+  email: {
+    appUrl: string;
+    resendApiKey: string;
+    resendFrom: string;
+  };
   nodeEnv: NodeEnv;
   redisUrl: string;
   servicePorts: ServicePorts;
@@ -108,6 +113,11 @@ export function loadConfig(env: Environment = process.env): AppConfig {
     databaseUrl:
       env.DATABASE_URL ??
       `postgresql://${postgresUser}:${postgresPassword}@${postgresHost}:${postgresPort}/${postgresDb}?schema=core`,
+    email: {
+      appUrl: env.APP_URL ?? "http://localhost:3000",
+      resendApiKey: env.RESEND_API_KEY ?? "",
+      resendFrom: env.RESEND_FROM_EMAIL ?? ""
+    },
     nodeEnv,
     redisUrl: env.REDIS_URL ?? `redis://${redisHost}:${redisPort}`,
     servicePorts: {

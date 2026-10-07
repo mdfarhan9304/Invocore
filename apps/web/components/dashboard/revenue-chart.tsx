@@ -36,7 +36,7 @@ export function RevenueChart({ ranges }: { ranges: Record<Range, RevenueRange> }
               <TrendingUp className="size-3.5" aria-hidden="true" />
             </span>
             <div>
-              <h2 className="text-sm font-semibold text-[#17352d]">Revenue overview</h2>
+              <h2 className="font-sans text-sm font-semibold text-[#17352d]">Revenue overview</h2>
               <p className="mt-0.5 text-[10px] text-[#8aa094]">
                 Invoiced revenue across the workspace
               </p>

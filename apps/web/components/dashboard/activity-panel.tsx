@@ -12,7 +12,7 @@ export function ActivityPanel({ activity }: { activity: ActivityItem[] }) {
       <DashboardCard className="h-[404px]">
         <div className="flex items-center justify-between border-b border-[#edf0ee] px-3.5 py-3">
           <div>
-            <h2 className="text-sm font-semibold text-[#17352d]">Recent activity</h2>
+            <h2 className="font-sans text-sm font-semibold text-[#17352d]">Recent activity</h2>
             <p className="mt-0.5 text-[10px] text-[#8aa094]">Latest workspace updates</p>
           </div>
           <Button variant="ghost" size="icon-sm" aria-label="More activity options">

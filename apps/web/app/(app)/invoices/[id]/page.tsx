@@ -136,7 +136,7 @@ export default function InvoiceDetailPage() {
           <Button variant="ghost" size="sm" onClick={() => setEditing(false)}>
             <ArrowLeftIcon className="h-4 w-4" />
           </Button>
-          <h1 className="text-xl font-semibold">Edit Invoice</h1>
+          <h1 className="text-xl">Edit Invoice</h1>
         </div>
         <InvoiceForm invoice={invoice} />
       </div>
@@ -159,7 +159,7 @@ export default function InvoiceDetailPage() {
               <ArrowLeftIcon className="h-4 w-4" />
             </Link>
           </Button>
-          <h1 className="text-xl font-semibold">{invoice.invoiceNumber ?? "Draft Invoice"}</h1>
+          <h1 className="text-xl">{invoice.invoiceNumber ?? "Draft Invoice"}</h1>
           <InvoiceStatusBadge status={invoice.status} />
         </div>
         <div className="flex flex-wrap gap-2">
@@ -248,7 +248,7 @@ export default function InvoiceDetailPage() {
       </div>
 
       <div>
-        <h3 className="mb-3 text-sm font-semibold">Line Items</h3>
+        <h3 className="mb-3 font-sans text-sm font-semibold">Line Items</h3>
         <div className="overflow-x-auto rounded-md border">
           <table className="w-full text-sm">
             <thead>
@@ -314,13 +314,13 @@ export default function InvoiceDetailPage() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {invoice.notes && (
             <div>
-              <h4 className="mb-1 text-sm font-semibold">Notes</h4>
+              <h4 className="mb-1 font-sans text-sm font-semibold">Notes</h4>
               <p className="whitespace-pre-wrap text-sm text-muted-foreground">{invoice.notes}</p>
             </div>
           )}
           {invoice.terms && (
             <div>
-              <h4 className="mb-1 text-sm font-semibold">Terms</h4>
+              <h4 className="mb-1 font-sans text-sm font-semibold">Terms</h4>
               <p className="whitespace-pre-wrap text-sm text-muted-foreground">{invoice.terms}</p>
             </div>
           )}
