@@ -22,3 +22,6 @@ pnpm-debug.log*
 
 # System files
 .DS_Store
+
+# Local planning notes
+tasks/
