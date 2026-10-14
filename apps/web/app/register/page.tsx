@@ -13,7 +13,7 @@ import { useAuth } from "@/lib/auth/auth-context";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { register, isAuthenticated, isInitializing } = useAuth();
+  const { register, isAuthenticated, isInitializing, user } = useAuth();
   const [name, setName] = useState("");
   const [organizationName, setOrganizationName] = useState("");
   const [email, setEmail] = useState("");
@@ -23,9 +23,9 @@ export default function RegisterPage() {
 
   useEffect(() => {
     if (!isInitializing && isAuthenticated) {
-      router.replace("/dashboard");
+      router.replace(user?.emailVerified ? "/dashboard" : "/verify-email");
     }
-  }, [isInitializing, isAuthenticated, router]);
+  }, [isInitializing, isAuthenticated, user?.emailVerified, router]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -39,7 +39,7 @@ export default function RegisterPage() {
         password,
         organizationName: organizationName.trim() ? organizationName.trim() : undefined
       });
-      router.replace("/dashboard");
+      router.replace("/verify-email");
     } catch (submitError) {
       setError(
         submitError instanceof ApiError

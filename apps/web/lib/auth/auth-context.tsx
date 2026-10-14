@@ -27,9 +27,10 @@ type AuthContextValue = {
   activeOrganization: UserOrganization | null;
   isAuthenticated: boolean;
   isInitializing: boolean;
-  login: (input: LoginInput) => Promise<void>;
-  register: (input: RegisterInput) => Promise<void>;
+  login: (input: LoginInput) => Promise<AuthUser>;
+  register: (input: RegisterInput) => Promise<AuthUser>;
   logout: () => Promise<void>;
+  resendVerificationEmail: () => Promise<void>;
   selectOrganization: (organizationId: string) => void;
 };
 
@@ -80,6 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         activeOrganizationId: result.organization?.id ?? null
       });
       await loadOrganizations(result.organization?.id ?? null);
+      return result.user;
     },
     [loadOrganizations]
   );
@@ -94,9 +96,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         activeOrganizationId: result.organization?.id ?? null
       });
       await loadOrganizations(result.organization?.id ?? null);
+      return result.user;
     },
     [loadOrganizations]
   );
+
+  const resendVerificationEmail = useCallback(async () => {
+    await authApi.resendVerificationEmail();
+  }, []);
 
   const logout = useCallback(async () => {
     const currentSession = getSessionSnapshot();
@@ -128,9 +135,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       register,
       logout,
+      resendVerificationEmail,
       selectOrganization
     };
-  }, [session, organizations, isInitializing, login, register, logout, selectOrganization]);
+  }, [
+    session,
+    organizations,
+    isInitializing,
+    login,
+    register,
+    logout,
+    resendVerificationEmail,
+    selectOrganization
+  ]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

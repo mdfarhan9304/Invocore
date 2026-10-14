@@ -7,6 +7,7 @@ import { Router as createRouter } from "express";
 import { createAuthGuard } from "../auth/guards/auth.guard.js";
 import { createMembershipsRepository } from "../memberships/memberships.repository.js";
 import { createTenantMiddleware } from "../memberships/tenant.middleware.js";
+import { createUsersRepository } from "../users/users.repository.js";
 import { createInvitationsController } from "./invitations.controller.js";
 import { createResendInvitationEmailSender } from "./invitation-email.service.js";
 import { createInvitationsRepository } from "./invitations.repository.js";
@@ -15,13 +16,14 @@ import { createInvitationsService } from "./invitations.service.js";
 export function createInvitationsModule(client: PrismaClient = prisma): Router {
   const router = createRouter();
   const membershipsRepository = createMembershipsRepository(client);
+  const usersRepository = createUsersRepository(client);
   const invitationsRepository = createInvitationsRepository(client);
   const invitationsService = createInvitationsService(
     invitationsRepository,
     createResendInvitationEmailSender(loadConfig().email)
   );
 
-  router.use(createAuthGuard(), createTenantMiddleware({ membershipsRepository }));
+  router.use(createAuthGuard(), createTenantMiddleware({ membershipsRepository, usersRepository }));
   router.use(createInvitationsController(invitationsService));
 
   return router;

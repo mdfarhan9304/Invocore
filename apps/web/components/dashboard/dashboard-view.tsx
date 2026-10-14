@@ -1,13 +1,20 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import { Reveal } from "@/components/marketing/reveal";
-import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
 import { ApiError } from "@/lib/api/client";
 import { dashboardApi } from "@/lib/api/dashboard";
 import { useAuth } from "@/lib/auth/auth-context";
+import type { Range } from "@/types/dashboard";
 import { ActivityPanel } from "./activity-panel";
 import { KpiCard } from "./kpi-card";
 import { RevenueChart } from "./revenue-chart";
@@ -15,6 +22,7 @@ import { buildActivity, buildKpis, buildRanges } from "./dashboard-utils";
 
 export function DashboardView() {
   const { activeOrganization } = useAuth();
+  const [range, setRange] = useState<Range>("30D");
   const summaryQuery = useQuery({
     queryKey: ["dashboard", "summary", activeOrganization?.id ?? "none"],
     queryFn: dashboardApi.getSummary,
@@ -48,13 +56,20 @@ export function DashboardView() {
             A clear view of the work moving through your business.
           </p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          className="self-start border-[#dfe6e1] bg-white text-[#60756c] shadow-sm sm:self-auto"
-        >
-          This month <ChevronDownIcon />
-        </Button>
+        <Select value={range} onValueChange={(value) => setRange(value as Range)}>
+          <SelectTrigger
+            size="sm"
+            aria-label="Dashboard reporting period"
+            className="self-start border-[#dfe6e1] bg-white text-[#60756c] shadow-sm sm:self-auto"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent position="popper" align="end">
+            <SelectItem value="7D">Last 7 days</SelectItem>
+            <SelectItem value="30D">This month</SelectItem>
+            <SelectItem value="90D">Last 3 months</SelectItem>
+          </SelectContent>
+        </Select>
       </Reveal>
       {error && <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -63,17 +78,9 @@ export function DashboardView() {
         ))}
       </div>
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
-        <RevenueChart ranges={ranges} />
+        <RevenueChart ranges={ranges} range={range} onRangeChange={setRange} />
         <ActivityPanel activity={activity} />
       </div>
     </div>
-  );
-}
-
-function ChevronDownIcon() {
-  return (
-    <span aria-hidden="true" className="ml-1 text-xs">
-      ⌄
-    </span>
   );
 }

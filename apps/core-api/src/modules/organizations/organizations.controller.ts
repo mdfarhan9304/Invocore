@@ -5,8 +5,13 @@ import { asyncController } from "../../common/http/async-controller.js";
 import { getAuthContext, getTenantContext } from "../../common/http/context.js";
 import type { MembershipsService } from "../memberships/memberships.service.js";
 import { createPermissionGuard } from "../memberships/role.guard.js";
+import type { OrganizationsService } from "./organizations.service.js";
+import { parseCreateOrganizationRequest } from "./dto/organizations.validation.js";
 
-export function createUserOrganizationsController(membershipsService: MembershipsService): Router {
+export function createUserOrganizationsController(
+  membershipsService: MembershipsService,
+  organizationsService: OrganizationsService
+): Router {
   const router = createRouter();
 
   router.get(
@@ -16,6 +21,19 @@ export function createUserOrganizationsController(membershipsService: Membership
       const organizations = await membershipsService.listUserOrganizations(auth.userId);
 
       response.status(200).json({ organizations });
+    })
+  );
+
+  router.post(
+    "/",
+    asyncController(async (request: Request, response: Response) => {
+      const auth = getAuthContext(request);
+      const organization = await organizationsService.createOwnerOrganization({
+        name: parseCreateOrganizationRequest(request.body).name,
+        userId: auth.userId
+      });
+
+      response.status(201).json({ organization });
     })
   );
 

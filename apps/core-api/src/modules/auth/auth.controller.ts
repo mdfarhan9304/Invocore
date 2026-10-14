@@ -3,11 +3,14 @@ import { Router as createRouter } from "express";
 
 import { asyncController } from "../../common/http/async-controller.js";
 import type { AuthService } from "./auth.service.js";
+import { createAuthGuard } from "./guards/auth.guard.js";
+import { getAuthContext } from "../../common/http/context.js";
 import {
   parseLoginRequest,
   parseLogoutRequest,
   parseRefreshRequest,
-  parseRegisterRequest
+  parseRegisterRequest,
+  parseVerifyEmailRequest
 } from "./dto/auth.validation.js";
 
 export function createAuthController(authService: AuthService): Router {
@@ -41,6 +44,24 @@ export function createAuthController(authService: AuthService): Router {
     "/logout",
     asyncController(async (request: Request, response: Response) => {
       await authService.logout(parseLogoutRequest(request.body));
+      response.status(204).send();
+    })
+  );
+
+  router.post(
+    "/verify-email",
+    asyncController(async (request: Request, response: Response) => {
+      const result = await authService.verifyEmail(parseVerifyEmailRequest(request.body).token);
+      response.status(200).json(result);
+    })
+  );
+
+  router.post(
+    "/resend-verification",
+    createAuthGuard(),
+    asyncController(async (request: Request, response: Response) => {
+      const auth = getAuthContext(request);
+      await authService.resendVerificationEmail(auth.userId);
       response.status(204).send();
     })
   );

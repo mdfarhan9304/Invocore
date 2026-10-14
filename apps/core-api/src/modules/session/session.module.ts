@@ -6,15 +6,17 @@ import { Router as createRouter } from "express";
 import { createAuthGuard } from "../auth/guards/auth.guard.js";
 import { createMembershipsRepository } from "../memberships/memberships.repository.js";
 import { createTenantMiddleware } from "../memberships/tenant.middleware.js";
+import { createUsersRepository } from "../users/users.repository.js";
 import { createSessionController } from "./session.controller.js";
 
 export function createSessionModule(client: PrismaClient = prisma): Router {
   const router = createRouter();
   const membershipsRepository = createMembershipsRepository(client);
+  const usersRepository = createUsersRepository(client);
 
   router.use(
     createAuthGuard(),
-    createTenantMiddleware({ membershipsRepository }),
+    createTenantMiddleware({ membershipsRepository, usersRepository }),
     createSessionController()
   );
 

@@ -13,7 +13,12 @@ export type LoginRequestDto = {
 export type AuthUserDto = {
   id: string;
   email: string;
+  emailVerified: boolean;
   name: string;
+};
+
+export type VerifyEmailRequestDto = {
+  token: string;
 };
 
 export type AuthOrganizationDto = {

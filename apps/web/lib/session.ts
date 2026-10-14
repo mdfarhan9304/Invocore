@@ -91,6 +91,17 @@ export function updateSessionTokens(accessToken: string, refreshToken: string): 
   persistSession(next);
 }
 
+export function updateSessionUser(user: AuthUser): void {
+  const current = getSessionSnapshot();
+  if (!current) {
+    return;
+  }
+
+  const next = { ...current, user };
+  useSessionStore.getState().setSessionState(next);
+  persistSession(next);
+}
+
 export function setActiveOrganizationId(organizationId: string): void {
   const current = getSessionSnapshot();
   if (!current || current.activeOrganizationId === organizationId) {

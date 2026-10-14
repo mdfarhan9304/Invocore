@@ -4,6 +4,7 @@ import express, { type Router } from "express";
 import { createAuthGuard } from "../auth/guards/auth.guard.js";
 import { createMembershipsRepository } from "../memberships/memberships.repository.js";
 import { createTenantMiddleware } from "../memberships/tenant.middleware.js";
+import { createUsersRepository } from "../users/users.repository.js";
 import {
   createPaymentsController,
   createRazorpayWebhookController
@@ -15,9 +16,13 @@ export function createPaymentsModule(client: PrismaClient = prisma) {
   const repository = new PaymentsRepository(client);
   const service = new PaymentsService(repository);
   const membershipsRepository = createMembershipsRepository(client);
+  const usersRepository = createUsersRepository(client);
 
   const invoiceRouter: Router = express.Router();
-  invoiceRouter.use(createAuthGuard(), createTenantMiddleware({ membershipsRepository }));
+  invoiceRouter.use(
+    createAuthGuard(),
+    createTenantMiddleware({ membershipsRepository, usersRepository })
+  );
   invoiceRouter.use(createPaymentsController(service));
 
   const webhookRouter: Router = express.Router();

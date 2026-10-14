@@ -13,7 +13,7 @@ import { useAuth } from "@/lib/auth/auth-context";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, isAuthenticated, isInitializing } = useAuth();
+  const { login, isAuthenticated, isInitializing, user } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -21,9 +21,9 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!isInitializing && isAuthenticated) {
-      router.replace("/dashboard");
+      router.replace(user?.emailVerified ? "/dashboard" : "/verify-email");
     }
-  }, [isInitializing, isAuthenticated, router]);
+  }, [isInitializing, isAuthenticated, user?.emailVerified, router]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -31,8 +31,8 @@ export default function LoginPage() {
     setSubmitting(true);
 
     try {
-      await login({ email, password });
-      router.replace("/dashboard");
+      const signedInUser = await login({ email, password });
+      router.replace(signedInUser.emailVerified ? "/dashboard" : "/verify-email");
     } catch (submitError) {
       setError(
         submitError instanceof ApiError

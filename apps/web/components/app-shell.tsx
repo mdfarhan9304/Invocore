@@ -12,6 +12,7 @@ import {
   Package,
   PanelLeftClose,
   PanelLeftOpen,
+  ShieldCheck,
   UsersRound,
   X,
   type LucideIcon
@@ -20,20 +21,32 @@ import {
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/auth-context";
+import type { Role } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
 
 type NavItem = {
   href: string;
   label: string;
   icon: LucideIcon;
+  roles?: Role[];
 };
 
 const NAV_ITEMS: NavItem[] = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
   { href: "/invoices", label: "Invoices", icon: FileText },
   { href: "/clients", label: "Clients", icon: UsersRound },
-  { href: "/products", label: "Products & services", icon: Package }
+  { href: "/products", label: "Products & services", icon: Package },
+  {
+    href: "/team",
+    label: "Team & roles",
+    icon: ShieldCheck,
+    roles: ["OWNER", "ADMIN"]
+  }
 ];
+
+function isAvailableToRole(item: NavItem, role: Role | undefined): boolean {
+  return !item.roles || (role !== undefined && item.roles.includes(role));
+}
 
 function getInitials(name: string | null | undefined): string {
   if (!name) {
@@ -60,8 +73,11 @@ function Sidebar({
   onNavigate: () => void;
 }) {
   const { user, organizations, activeOrganization, selectOrganization, logout } = useAuth();
+  const visibleNavigation = NAV_ITEMS.filter((item) =>
+    isAvailableToRole(item, activeOrganization?.role)
+  );
   const currentLabel =
-    NAV_ITEMS.find((item) => pathname === item.href || pathname.startsWith(`${item.href}/`))
+    visibleNavigation.find((item) => pathname === item.href || pathname.startsWith(`${item.href}/`))
       ?.label ?? "Workspace";
 
   return (
@@ -72,12 +88,6 @@ function Sidebar({
       <div className="flex items-center justify-between px-1">
         <div className="flex items-center gap-2">
           <Logo href="/dashboard" size="sm" className={cn(collapsed && "lg:hidden")} />
-          <Logo
-            href="/dashboard"
-            size="sm"
-            variant="mark"
-            className={cn(!collapsed && "hidden lg:inline-flex")}
-          />
         </div>
         <Button
           variant="ghost"
@@ -133,7 +143,7 @@ function Sidebar({
             Main navigation
           </p>
           <div className="mt-2 flex flex-col gap-1">
-            {NAV_ITEMS.map((item) => {
+            {visibleNavigation.map((item) => {
               const Icon = item.icon;
               const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
 
@@ -218,6 +228,7 @@ function Sidebar({
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const { activeOrganization } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -336,7 +347,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <span>Workspace</span>
               <span aria-hidden>/</span>
               <span className="font-medium text-[#17352d]">
-                {NAV_ITEMS.find(
+                {NAV_ITEMS.filter((item) => isAvailableToRole(item, activeOrganization?.role)).find(
                   (item) => pathname === item.href || pathname.startsWith(`${item.href}/`)
                 )?.label ?? "Overview"}
               </span>

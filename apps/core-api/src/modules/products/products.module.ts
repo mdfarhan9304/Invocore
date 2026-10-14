@@ -6,6 +6,7 @@ import { Router as createRouter } from "express";
 import { createAuthGuard } from "../auth/guards/auth.guard.js";
 import { createMembershipsRepository } from "../memberships/memberships.repository.js";
 import { createTenantMiddleware } from "../memberships/tenant.middleware.js";
+import { createUsersRepository } from "../users/users.repository.js";
 import { createProductsController } from "./products.controller.js";
 import { createProductsRepository } from "./products.repository.js";
 import { createProductsService } from "./products.service.js";
@@ -13,10 +14,11 @@ import { createProductsService } from "./products.service.js";
 export function createProductsModule(client: PrismaClient = prisma): Router {
   const router = createRouter();
   const membershipsRepository = createMembershipsRepository(client);
+  const usersRepository = createUsersRepository(client);
   const productsRepository = createProductsRepository(client);
   const productsService = createProductsService(productsRepository);
 
-  router.use(createAuthGuard(), createTenantMiddleware({ membershipsRepository }));
+  router.use(createAuthGuard(), createTenantMiddleware({ membershipsRepository, usersRepository }));
   router.use(createProductsController(productsService));
 
   return router;

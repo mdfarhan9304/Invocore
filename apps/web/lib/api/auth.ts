@@ -1,5 +1,5 @@
 import { request } from "./client";
-import type { AuthResponse } from "./types";
+import type { AuthResponse, AuthUser } from "./types";
 
 export type RegisterInput = {
   email: string;
@@ -24,5 +24,16 @@ export const authApi = {
 
   logout(refreshToken: string): Promise<void> {
     return request<void>("/auth/logout", { method: "POST", body: { refreshToken } });
+  },
+
+  verifyEmail(token: string): Promise<{ user: AuthUser }> {
+    return request<{ user: AuthUser }>("/auth/verify-email", {
+      method: "POST",
+      body: { token }
+    });
+  },
+
+  resendVerificationEmail(): Promise<void> {
+    return request<void>("/auth/resend-verification", { method: "POST", auth: true });
   }
 };

@@ -2,6 +2,7 @@ import { AppError } from "@invocore/shared";
 import type { NextFunction, Request, RequestHandler, Response } from "express";
 
 import { getAuthContext, setTenantContext } from "../../common/http/context.js";
+import type { UsersRepository } from "../users/users.repository.js";
 import type { MembershipsRepository } from "./memberships.repository.js";
 
 const ORGANIZATION_HEADER = "x-organization-id";
@@ -9,13 +10,20 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{
 
 type TenantMiddlewareDependencies = {
   membershipsRepository: MembershipsRepository;
+  usersRepository: UsersRepository;
 };
 
 async function resolveTenant(
   request: Request,
-  membershipsRepository: MembershipsRepository
+  dependencies: TenantMiddlewareDependencies
 ): Promise<void> {
+  const { membershipsRepository, usersRepository } = dependencies;
   const auth = getAuthContext(request);
+
+  const emailVerified = await usersRepository.isEmailVerified(auth.userId);
+  if (!emailVerified) {
+    throw new AppError("Verify your email before using this workspace", "EMAIL_NOT_VERIFIED", 403);
+  }
 
   const rawHeader = request.headers[ORGANIZATION_HEADER];
   const organizationId = Array.isArray(rawHeader) ? rawHeader[0] : rawHeader;
@@ -42,9 +50,7 @@ async function resolveTenant(
 }
 
 export function createTenantMiddleware(dependencies: TenantMiddlewareDependencies): RequestHandler {
-  const { membershipsRepository } = dependencies;
-
   return (request: Request, _response: Response, next: NextFunction) => {
-    resolveTenant(request, membershipsRepository).then(() => next(), next);
+    resolveTenant(request, dependencies).then(() => next(), next);
   };
 }

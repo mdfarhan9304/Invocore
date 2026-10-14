@@ -9,13 +9,22 @@ import { useAuth } from "@/lib/auth/auth-context";
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
-  const { isAuthenticated, isInitializing } = useAuth();
+  const { isAuthenticated, isInitializing, user } = useAuth();
 
   useEffect(() => {
-    if (!isInitializing && !isAuthenticated) {
-      router.replace("/login");
+    if (isInitializing) {
+      return;
     }
-  }, [isInitializing, isAuthenticated, router]);
+
+    if (!isAuthenticated) {
+      router.replace("/login");
+      return;
+    }
+
+    if (user && user.emailVerified === false) {
+      router.replace("/verify-email");
+    }
+  }, [isInitializing, isAuthenticated, user, router]);
 
   if (isInitializing) {
     return (
@@ -26,7 +35,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated || user?.emailVerified === false) {
     return null;
   }
 

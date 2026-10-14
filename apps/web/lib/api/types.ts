@@ -11,6 +11,7 @@ export type ApiErrorBody = {
 export type AuthUser = {
   id: string;
   email: string;
+  emailVerified: boolean;
   name: string;
 };
 
@@ -36,6 +37,36 @@ export type UserOrganization = {
   id: string;
   name: string;
   role: Role;
+};
+
+export type OrganizationMember = {
+  userId: string;
+  name: string;
+  email: string;
+  role: Role;
+};
+
+export type InvitationRole = Exclude<Role, "OWNER">;
+
+export type Invitation = {
+  id: string;
+  email: string;
+  role: InvitationRole;
+  status: "PENDING" | "ACCEPTED" | "REVOKED";
+  isExpired: boolean;
+  expiresAt: string;
+  createdAt: string;
+  acceptedAt: string | null;
+  revokedAt: string | null;
+};
+
+export type InvitationList = {
+  data: Invitation[];
+  pagination: {
+    limit: number;
+    offset: number;
+    total: number;
+  };
 };
 
 export type Client = {

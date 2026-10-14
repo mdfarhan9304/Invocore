@@ -76,8 +76,9 @@ async function seed(): Promise<void> {
   const user = await prisma.user.create({
     data: {
       name: "Aarav Mehta",
-      email: "admin@northstar.test",
-      passwordHash: await hashPassword(password)
+      email: "owner@northstar.test",
+      passwordHash: await hashPassword(password),
+      emailVerifiedAt: new Date()
     }
   });
   await prisma.membership.create({
@@ -85,7 +86,7 @@ async function seed(): Promise<void> {
   });
 
   const memberData = [
-    ["Riya Shah", "manager@northstar.test", Role.ADMIN],
+    ["Riya Shah", "admin@northstar.test", Role.ADMIN],
     ["Kabir Nair", "finance@northstar.test", Role.ACCOUNTANT],
     ["Meera Iyer", "viewer@northstar.test", Role.VIEWER]
   ] as const;
@@ -94,7 +95,8 @@ async function seed(): Promise<void> {
       data: {
         name,
         email,
-        passwordHash: await hashPassword(password)
+        passwordHash: await hashPassword(password),
+        emailVerifiedAt: new Date()
       }
     });
     await prisma.membership.create({
@@ -394,7 +396,15 @@ async function seed(): Promise<void> {
   process.stdout.write(
     `${JSON.stringify({
       organization: organization.name,
-      user: "admin@northstar.test",
+      credentials: [
+        { email: "owner@northstar.test", role: Role.OWNER },
+        { email: "admin@northstar.test", role: Role.ADMIN },
+        { email: "finance@northstar.test", role: Role.ACCOUNTANT },
+        { email: "viewer@northstar.test", role: Role.VIEWER }
+      ],
+      password: "Set through SEED_ADMIN_PASSWORD",
+      clients: clients.length,
+      products: products.length,
       members: memberData.length + 1,
       invoices: invoices.length,
       payments: invoices.filter((invoice) => invoice.amountPaid > 0).length

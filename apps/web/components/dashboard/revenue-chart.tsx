@@ -2,13 +2,27 @@ import { useState, type KeyboardEvent } from "react";
 import { TrendingUp } from "lucide-react";
 
 import { Reveal } from "@/components/marketing/reveal";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { DashboardCard } from "./dashboard-card";
 import type { Range, RevenueRange } from "@/types/dashboard";
 import { formatValue } from "./dashboard-utils";
 
-export function RevenueChart({ ranges }: { ranges: Record<Range, RevenueRange> }) {
-  const [range, setRange] = useState<Range>("7D");
+export function RevenueChart({
+  ranges,
+  range,
+  onRangeChange
+}: {
+  ranges: Record<Range, RevenueRange>;
+  range: Range;
+  onRangeChange: (range: Range) => void;
+}) {
   const [hovered, setHovered] = useState<number | null>(null);
   const [pinned, setPinned] = useState<number | null>(null);
   const data = ranges[range];
@@ -42,26 +56,26 @@ export function RevenueChart({ ranges }: { ranges: Record<Range, RevenueRange> }
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-1 rounded-lg border border-[#e5e7eb] bg-[#f7f9f7] p-0.5">
-            {(Object.keys(ranges) as Range[]).map((item) => (
-              <button
-                key={item}
-                type="button"
-                onClick={() => {
-                  setRange(item);
-                  setPinned(null);
-                }}
-                className={cn(
-                  "rounded-md px-2 py-1 text-[10px] font-semibold transition-colors",
-                  range === item
-                    ? "bg-white text-[#17352d] shadow-sm"
-                    : "text-[#8aa094] hover:text-[#17352d]"
-                )}
-              >
-                {item}
-              </button>
-            ))}
-          </div>
+          <Select
+            value={range}
+            onValueChange={(value) => {
+              onRangeChange(value as Range);
+              setPinned(null);
+            }}
+          >
+            <SelectTrigger
+              size="sm"
+              aria-label="Revenue chart time range"
+              className="border-[#e5e7eb] bg-[#f7f9f7] text-xs font-semibold text-[#17352d]"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent position="popper" align="end">
+              <SelectItem value="7D">Last 7 days</SelectItem>
+              <SelectItem value="30D">This month</SelectItem>
+              <SelectItem value="90D">Last 3 months</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <div className="flex flex-1 flex-col p-3.5">
           <div className="flex items-end gap-3">

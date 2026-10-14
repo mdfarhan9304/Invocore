@@ -10,8 +10,8 @@ import {
   type LineItemRow
 } from "@/components/invoices/line-items-editor";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Field, FormAlert } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ApiError } from "@/lib/api/client";
 import { clientsApi } from "@/lib/api/clients";
@@ -193,21 +193,11 @@ export function InvoiceForm({ invoice }: InvoiceFormProps) {
         <div></div>
 
         <Field label="Issue date" htmlFor="invoice-issue-date">
-          <Input
-            id="invoice-issue-date"
-            type="date"
-            value={issueDate}
-            onChange={(e) => setIssueDate(e.target.value)}
-          />
+          <DatePicker id="invoice-issue-date" value={issueDate} onChange={setIssueDate} />
         </Field>
 
         <Field label="Due date" htmlFor="invoice-due-date">
-          <Input
-            id="invoice-due-date"
-            type="date"
-            value={dueDate}
-            onChange={(e) => setDueDate(e.target.value)}
-          />
+          <DatePicker id="invoice-due-date" value={dueDate} onChange={setDueDate} />
         </Field>
       </div>
 

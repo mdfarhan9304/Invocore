@@ -4,6 +4,7 @@ import express, { type Router } from "express";
 import { createAuthGuard } from "../auth/guards/auth.guard.js";
 import { createMembershipsRepository } from "../memberships/memberships.repository.js";
 import { createTenantMiddleware } from "../memberships/tenant.middleware.js";
+import { createUsersRepository } from "../users/users.repository.js";
 import { createDashboardController } from "./dashboard.controller.js";
 import { DashboardRepository } from "./dashboard.repository.js";
 import { DashboardService } from "./dashboard.service.js";
@@ -11,9 +12,10 @@ import { DashboardService } from "./dashboard.service.js";
 export function createDashboardModule(client: PrismaClient = prisma): Router {
   const router = express.Router();
   const membershipsRepository = createMembershipsRepository(client);
+  const usersRepository = createUsersRepository(client);
   const dashboardService = new DashboardService(new DashboardRepository(client));
 
-  router.use(createAuthGuard(), createTenantMiddleware({ membershipsRepository }));
+  router.use(createAuthGuard(), createTenantMiddleware({ membershipsRepository, usersRepository }));
   router.use(createDashboardController(dashboardService));
   return router;
 }

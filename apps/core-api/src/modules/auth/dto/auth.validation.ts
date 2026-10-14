@@ -4,7 +4,8 @@ import type {
   LoginRequestDto,
   LogoutRequestDto,
   RefreshRequestDto,
-  RegisterRequestDto
+  RegisterRequestDto,
+  VerifyEmailRequestDto
 } from "./auth.dto.js";
 
 type UnknownRecord = Record<string, unknown>;
@@ -80,5 +81,13 @@ export function parseLogoutRequest(body: unknown): LogoutRequestDto {
 
   return {
     refreshToken: readString(body, "refreshToken")
+  };
+}
+
+export function parseVerifyEmailRequest(body: unknown): VerifyEmailRequestDto {
+  assertRecord(body);
+
+  return {
+    token: readString(body, "token")
   };
 }
